@@ -1,0 +1,67 @@
+---
+bootstrap_location: "{{ ansible_user_dir }}/bootstrap-tokens"
+hashicorp_datacenter_name: "velp"
+
+nomad_binary: "/usr/bin/nomad"
+nomad_etc_directory: "/etc/nomad.d"
+nomad_data_directory: "/opt/nomad"
+nomad_data_directory_owner: "root"
+nomad_data_directory_group: "root"
+nomad_service_name: "nomad"
+nomad_systemd_service_file: "/etc/systemd/system/nomad.service"
+
+nomad_enable_syslog: "true"
+nomad_log_level: "INFO"
+nomad_log_json: "false"
+nomad_log_directory: "/var/log/nomad"
+nomad_log_directory_owner: "root"
+nomad_log_directory_group: "root"
+nomad_log_rotate_duration: "86400s"
+nomad_log_rotate_max_files: "7"
+
+nomad_pause_seconds: "60"
+nomad_bootstrapped_true_file: "{{ nomad_data_directory }}/bootstrapped.true"
+nomad_bootstrap_token_local_path: "{{ bootstrap_location }}/management.nomad.token"
+nomad_policy_local_path: "files/anonymous-nomad-policy.hcl"
+nomad_policy_remote_path: "{{ nomad_data_directory }}/anonymous-nomad-policy.hcl"
+
+nomad_consul_bootstrapped_true_file: "{{ nomad_data_directory }}/consul-bootstrapped.true"
+
+nomad_consul_server_policy_local_file: "files/nomad-server-service-consul-policy.hcl"
+nomad_consul_server_policy_remote_file: "{{ nomad_data_directory }}/nomad-server-service-consul-policy.hcl"
+nomad_consul_server_service_name: "nomad-server-service"
+nomad_consul_server_token_description: "Nomad Server Service Token"
+nomad_consul_server_token_local_path: "{{ bootstrap_location }}/nomad-server.consul.token"
+
+nomad_consul_client_policy_local_file: "files/nomad-client-service-consul-policy.hcl"
+nomad_consul_client_policy_remote_file: "{{ nomad_data_directory }}/nomad-client-service-consul-policy.hcl"
+nomad_consul_client_service_name: "nomad-client-service"
+nomad_consul_client_token_description: "Nomad Client Service Token"
+nomad_consul_client_token_local_path: "{{ bootstrap_location }}/nomad-client.consul.token"
+
+nomad_ops_token_name: "Ops Token"
+nomad_ops_token_local_path: "{{ bootstrap_location }}/ops.nomad.token"
+
+nomad_client_token_name: "Nomad Clients Token"
+nomad_client_policy_name: "nomad-clients"
+nomad_client_policy_description: "Nomad Clients Policy"
+nomad_client_policy_local_file: "files/nomad-client-policy.hcl"
+nomad_client_policy_remote_file: "{{ nomad_data_directory }}/nomad-client-policy.hcl"
+nomad_client_token_local_path: "{{ bootstrap_location }}/nomad-clients.nomad.token"
+
+nomad_snapshot_token_name: "Token for snapshots"
+nomad_snapshot_token_local_path: "{{ bootstrap_location }}/snapshot.nomad.token"
+nomad_snapshot_token_root_path: "/root/snapshot.nomad.token"
+
+nomad_snapshot_backup_main: "/srv/nomad"
+nomad_snapshot_backup_location: "/srv/nomad/backups"
+nomad_snapshot_backup_location_owner: "nomad"
+nomad_snapshot_backup_location_group: "nomad"
+nomad_snapshot_batchfile_template: "nomad-snapshot.sh.j2"
+nomad_snapshot_batchfile_location: "/srv/nomad/nomad-snapshot.sh"
+nomad_snapshot_keep_days: "7"
+nomad_snapshot_filename: "nomad"
+nomad_snapshot_file_extension: "snap"
+
+nomad_snapshot_cron_backup_minute: "00"
+nomad_snapshot_cron_backup_hour: "00"

@@ -1,0 +1,39 @@
+---
+- name: Ensure local directories.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  delegate_to: localhost
+  become: false
+  run_once: true
+  with_items:
+    - "{{ bootstrap_location }}"
+    - "{{ safeguard_location }}"
+
+- name: Ensure basic packages.
+  ansible.builtin.package:
+    name: "{{ basic_packages }}"
+    state: present
+
+- name: Ensure pip is installed.
+  ansible.builtin.include_role:
+    name: geerlingguy.pip
+
+- name: Ensure HashiCorp binaries.
+  ansible.builtin.include_role:
+    name: chrisvanmeer.hashicorp
+
+- name: Safeguard original HashiCorp config files.
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ safeguard_location }}/{{ item | basename }}.org"
+    mode: 0644
+  become: false
+  run_once: true
+  delegate_to: localhost
+  with_items:
+    - "/etc/consul.d/consul.hcl"
+    - "/etc/vault.d/vault.hcl"
+    - "/etc/nomad.d/nomad.hcl"
+

@@ -1,0 +1,110 @@
+---
+
+- name: Check if system is already bootstrapped.
+  ansible.builtin.stat:
+    path: "{{ nomad_bootstrapped_true_file }}"
+  register: nomad_bootstrapped
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
+- name: Find all vault-nomad-server- files.
+  ansible.builtin.find:
+    paths: "{{ role_path }}/files/"
+    patterns: "vault-nomad-*"
+    file_type: "file"
+  delegate_to: localhost
+  run_once: true
+  register: vault_files
+
+- name: Ensure vault-nomad-server- files are present.
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ nomad_data_directory }}/{{ item.path | basename }}"
+    mode: 0644
+  with_items: "{{ vault_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+  when:
+    - ansible_hostname in groups['nomad_servers']
+    - not nomad_bootstrapped.stat.exists
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
+- name: Enable integration.
+  block:
+    - name: Retrieve Initial Root Token from local file.
+      ansible.builtin.shell: "awk '/Initial Root Token/ {print $4}' {{ vault_bootstrap_init_local_path }}"
+      register: vault_initial_root_token
+      changed_when: false
+      delegate_to: localhost
+      become: false
+      run_once: true
+    - name: Ensure nomad-server-policy is present.
+      ansible.builtin.command: "{{ vault_binary }} policy write nomad-server vault-nomad-server-policy.hcl"
+      args:
+        chdir: "{{ nomad_data_directory }}"
+      environment:
+        VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_SKIP_VERIFY: "true"
+      changed_when: false
+    - name: Ensure nomad-cluster-role is present.
+      ansible.builtin.command: "{{ vault_binary }} write /auth/token/roles/nomad-cluster @vault-nomad-cluster-role.json"
+      args:
+        chdir: "{{ nomad_data_directory }}"
+      environment:
+        VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_SKIP_VERIFY: "true"
+      changed_when: false
+    - name: Ensure nomad token is generated.
+      ansible.builtin.shell: "{{ vault_binary }} token create -policy nomad-server -period 72h -orphan -format=json | jq -r .auth.client_token"
+      args:
+        chdir: "{{ nomad_data_directory }}"
+      environment:
+        VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_SKIP_VERIFY: "true"
+      changed_when: false
+      register: nomad_server_token_raw
+  when:
+    - ansible_hostname in groups['nomad_servers']
+    - not nomad_bootstrapped.stat.exists
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
+- name: Set a fact of the nomad token.
+  ansible.builtin.set_fact:
+    nomad_server_vault_token: "{{ nomad_server_token_raw.stdout }}"
+
+- name: Ensure vault integration is part of the Nomad config directory.
+  ansible.builtin.template:
+    src: vault-nomad-server.hcl.j2
+    dest: "{{ nomad_etc_directory }}/vault.hcl"
+    mode: 0644
+  notify: Restart Nomad
+
+- name: Find all vault-nomad-server- files.
+  ansible.builtin.find:
+    paths: "{{ nomad_data_directory }}/"
+    patterns: "vault-nomad-*"
+    file_type: "file"
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+  register: vault_files
+
+- name: Clean up files.
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ vault_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true

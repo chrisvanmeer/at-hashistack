@@ -1,0 +1,17 @@
+client {
+  enabled = true
+}
+
+acl {
+  enabled = true
+}
+
+plugin "docker" {
+  config {
+    endpoint = "unix:///var/run/docker.sock"
+    volumes {
+      enabled      = true
+      selinuxlabel = "z"
+    }
+  }
+}

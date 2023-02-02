@@ -1,0 +1,15 @@
+---
+- name: Vault
+  hosts:
+    - vault_servers
+    - vault_clients
+  become: true
+
+  # Uncomment these lines if you want to unseal with other shards than present in the vault.master.keys file.
+  # vars:
+  #   vault_unseal_key_1: "xxxxxxxxxxx"
+  #   vault_unseal_key_2: "yyyyyyyyyyy"
+  #   vault_unseal_key_3: "zzzzzzzzzzz"
+
+  roles:
+    - name: hashicorp/vault

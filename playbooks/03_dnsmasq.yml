@@ -1,0 +1,9 @@
+---
+- name: dnsmasq
+  hosts:
+    - consul_servers
+    - consul_clients
+  become: true
+
+  roles:
+    - name: dnsmasq

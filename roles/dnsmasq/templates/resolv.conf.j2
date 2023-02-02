@@ -1,0 +1,10 @@
+{% if ansible_hostname in groups['nomad_clients'] %}
+nameserver 127.0.0.1
+{% else %}
+nameserver {{ ansible_host }}
+{% endif %}
+{% for server in dnsmasq_default_domain_servers %}
+nameserver {{ server }}
+{% endfor %}
+
+search {{ dnsmasq_search_dns_suffix_1 }} {{ dnsmasq_search_dns_suffix_2 }}

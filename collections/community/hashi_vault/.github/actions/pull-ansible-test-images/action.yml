@@ -1,0 +1,52 @@
+---
+name: Pull ansible-test docker images
+description: Performs a docker pull against ansible-test docker image aliases
+inputs:
+  working-directory:
+    description: The working directory to operate under. This should be the collection's directory.
+    required: false
+  ansible-test-invocation:
+    description: The options that will be passed to ansible-test.
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: pip install packaging
+
+    - shell: python
+      run: |
+        import os
+        import sys
+        from packaging import version
+        from ansible.release import __version__ as ansible_version
+
+        ver = version.parse(ansible_version)
+        cutoff = version.parse('2.12')
+
+        nwd = r'${{ inputs.working-directory }}'
+        if nwd:
+          os.chdir(nwd)
+
+        # not using ver >= cutoff because of pre-release/dev comparison logic
+        if ver.major > cutoff.major or (ver.major == cutoff.major and ver.minor >= cutoff.minor):
+            invo = r'${{ inputs.ansible-test-invocation }}'
+            sys.exit(os.system('ansible-test %s --prime-containers' % invo))
+
+        try:
+            from ansible_test._internal.util_common import get_docker_completion
+        except ImportError:
+            # 2.9
+            from ansible_test._internal.util import get_docker_completion
+
+        context = 'collection'
+        wanted = ['default']
+
+        dockers = get_docker_completion()
+
+        for alias, data in dockers.items():
+            if alias in wanted:
+                if 'context' not in data or data['context'] == context:
+                    image = data['name']
+                    print('pulling %s' % image)
+                    os.system('docker pull %s' % image)

@@ -1,0 +1,4 @@
+---
+# tasks file for chrisvanmeer.hashicorp-role
+- name: Include right OS task file.
+  ansible.builtin.include_tasks: "{{ hashicorp_task_file }}"

@@ -1,0 +1,23 @@
+---
+- name: Preparations.
+  ansible.builtin.include_tasks: preparations.yml
+
+- name: Consul ACL.
+  ansible.builtin.include_tasks: consul-acl.yml
+
+- name: Pre-ACL configuration.
+  ansible.builtin.include_tasks: pre-acl-configuration.yml
+
+- name: Nomad ACL.
+  ansible.builtin.include_tasks: nomad-acl.yml
+
+- name: Post-ACL configuration.
+  ansible.builtin.include_tasks: post-acl-configuration.yml
+
+- name: Integration with Vault.
+  ansible.builtin.include_tasks: vault-integration.yml
+
+- name: Backup.
+  ansible.builtin.include_tasks: backup.yml
+  when: ansible_hostname in groups['nomad_servers']
+  tags: backup

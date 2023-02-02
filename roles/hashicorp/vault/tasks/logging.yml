@@ -1,0 +1,41 @@
+---
+- name: Retrieve Initial Root Token from local file.
+  ansible.builtin.shell: "awk '/Initial Root Token/ {print $4}' {{ vault_bootstrap_init_local_path }}"
+  register: vault_initial_root_token
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: Ensure logrotate file for Vault is present.
+  ansible.builtin.template:
+    src: "{{ vault_log_template_local }}"
+    dest: "{{ vault_log_rotate_dir }}/{{ vault_log_rotate_filename }}"
+    mode: 0644
+  when: ansible_hostname in groups['vault_servers']
+
+- name: Ensure file auditing is enabled.
+  ansible.builtin.command: "{{ vault_binary }} audit enable file file_path={{ vault_log_location }}"
+  environment:
+    VAULT_ADDR: "{{ vault_address }}"
+    VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+    VAULT_SKIP_VERIFY: "true"
+    VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+  changed_when: false
+  when: ansible_hostname in groups['vault_servers']
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+  ignore_errors: true
+
+- name: Ensure syslog auditing is enabled.
+  ansible.builtin.command: "{{ vault_binary }} audit enable syslog tag='{{ vault_syslog_tag }}' facility='{{ vault_syslog_facility }}'"
+  environment:
+    VAULT_ADDR: "{{ vault_address }}"
+    VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+    VAULT_SKIP_VERIFY: "true"
+    VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+  changed_when: false
+  when: ansible_hostname in groups['vault_servers']
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+  ignore_errors: true

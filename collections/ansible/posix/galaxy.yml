@@ -1,0 +1,14 @@
+namespace: ansible
+name: posix
+version: 1.5.0
+readme: README.md
+authors:
+  - Ansible (github.com/ansible)
+description: Ansible Collection targeting POSIX and POSIX-ish platforms.
+license_file: COPYING
+tags: [posix, networking, shell, unix]
+dependencies: {}
+repository: https://github.com/ansible-collections/ansible.posix
+documentation: https://github.com/ansible-collections/ansible.posix/tree/main/docs
+homepage: https://github.com/ansible-collections/ansible.posix
+issues: https://github.com/ansible-collections/ansible.posix

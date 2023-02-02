@@ -1,0 +1,13 @@
+---
+- name: "Ensure Hashicorp repository is present."
+  ansible.builtin.yum_repository:
+    name: HashiCorp
+    description: HashiCorp Repository
+    baseurl: "https://rpm.releases.hashicorp.com/fedora/$releasever/$basearch/stable"
+    gpgcheck: false
+    enabled: true
+
+- name: "Ensure packages are present."
+  ansible.builtin.dnf:
+    name: "{{ hashicorp_product_selection }}"
+    state: present

@@ -1,0 +1,29 @@
+---
+- name: Ensure data directory is present.
+  ansible.builtin.file:
+    path: "{{ nomad_data_directory }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ nomad_data_directory_owner }}"
+    group: "{{ nomad_data_directory_group }}"
+
+- name: Ensure log directory is present.
+  ansible.builtin.file:
+    path: "{{ nomad_log_directory }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ nomad_log_directory_owner }}"
+    group: "{{ nomad_log_directory_group }}"
+
+- name: Install autocompletion.
+  ansible.builtin.command: "{{ item[0] }} -autocomplete-install"
+  become: "{{ item[1] }}"
+  with_nested:
+    - "{{ hashicorp_product_selection }}"
+    - [ 'true', 'false' ]
+  register: autoinstall_cmd
+  changed_when:
+    - not 'already installed' in autoinstall_cmd.stderr
+  failed_when:
+    - autoinstall_cmd.rc != 0
+    - not 'already installed' in autoinstall_cmd.stderr

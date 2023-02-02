@@ -1,0 +1,70 @@
+---
+- name: Read DNS policy
+  ansible.builtin.shell: "{{ consul_binary }} acl policy create -read {{ consul_dns_policy_name }} | awk '/Name/ {print $2}'"
+  environment:
+    CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+  changed_when: false
+  register: consul_acl_policy_read_dns_requests
+
+- name: DNS requests - Creation.
+  block:
+    - name: Ensure the DNS request policy file is in place.
+      ansible.builtin.copy:
+        src: "{{ consul_dns_policy_file_local }}"
+        dest: "{{ consul_dns_policy_file_remote }}"
+        mode: 0644
+
+    - name: Ensure that the policy is present in Consul.
+      ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ consul_dns_policy_name }} -rules @{{ consul_dns_policy_file_name }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      args:
+        chdir: "{{ consul_data_directory }}/"
+      changed_when: false
+      ignore_errors: true
+
+    - name: Create ACL token using the above policy.
+      ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ consul_dns_policy_description }}' -policy-name {{ consul_dns_policy_name }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      changed_when: false
+      register: dns_policy_token_output_raw
+
+    - name: Cleanup the placed policy file.
+      ansible.builtin.file:
+        path: "{{ consul_dns_policy_file_remote }}"
+        state: absent
+
+    - name: Store bootstrap token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ dns_policy_token_output_raw.stdout }}"
+        dest: "{{ consul_dns_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  when:
+    - not consul_acl_policy_read_dns_requests.stdout == consul_dns_policy_name
+  run_once: true
+
+- name: DNS requests - Configuration.
+  block:
+
+    - name: Retrieve Secret ID from bootstrap output.
+      ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_dns_token_local_path }}"
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      register: dns_token_output
+
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  run_once: true
+
+- name: Set the DNS token as default for the Consul agent
+  ansible.builtin.command: "{{ consul_binary }} acl set-agent-token default '{{ dns_token_output.stdout }}'"
+  environment:
+    CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+  changed_when: false
+  when:
+    - not consul_acl_policy_read_dns_requests.stdout == consul_dns_policy_name

@@ -1,0 +1,61 @@
+---
+- name: Retrieve Consul Secret ID from bootstrap output.
+  ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
+  changed_when: false
+  become: false
+  delegate_to: localhost
+  register: consul_acl_bootstrap_output
+  run_once: true
+
+- name: Set the Consul Secret ID as a fact.
+  ansible.builtin.set_fact:
+    consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
+
+- name: Ensure general configuration is present.
+  ansible.builtin.template:
+    src: "nomad.hcl.j2"
+    dest: "{{ nomad_etc_directory }}/nomad.hcl"
+    mode: "0644"
+    owner: "{{ nomad_data_directory_owner }}"
+    group: "{{ nomad_data_directory_group }}"
+  notify: Restart Nomad
+
+- name: Ensure configuration is present on the server.
+  ansible.builtin.template:
+    src: "server.hcl.j2"
+    dest: "{{ nomad_etc_directory }}/server.hcl"
+    mode: "0644"
+    owner: "{{ nomad_data_directory_owner }}"
+    group: "{{ nomad_data_directory_group }}"
+  notify: Restart Nomad
+  when: ansible_hostname in groups['nomad_servers']
+
+- name: Ensure configuration is present on the client.
+  ansible.builtin.template:
+    src: "client.hcl.j2"
+    dest: "{{ nomad_etc_directory }}/client.hcl"
+    mode: "0644"
+    owner: "{{ nomad_data_directory_owner }}"
+    group: "{{ nomad_data_directory_group }}"
+  notify: Restart Nomad
+  when: ansible_hostname in groups['nomad_clients']
+
+- name: Ensure systemd service is present.
+  ansible.builtin.template:
+    src: "nomad.service.j2"
+    dest: "{{ nomad_systemd_service_file }}"
+    mode: 0644
+
+- name: Ensure systemd is reloaded.
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure systemd service is enabled and started.
+  ansible.builtin.systemd:
+    name: "{{ nomad_service_name }}"
+    enabled: true
+    state: started
+
+- name: Take a break to allow for the nomad_servers to find each other. Keep your eye on the Consul services screen for nomad and nomad-client to go green.
+  ansible.builtin.pause:
+    seconds: "{{ nomad_pause_seconds }}"

@@ -1,0 +1,12 @@
+---
+- name: Reset Consul / Nomad
+  hosts: hashicorp_stack
+  become: true
+
+  vars_files:
+    - roles/hashicorp/nomad/vars/main.yml
+    - roles/hashicorp/vault/vars/main.yml
+    - roles/hashicorp/consul/vars/main.yml
+
+  roles:
+    - name: hashicorp/reset

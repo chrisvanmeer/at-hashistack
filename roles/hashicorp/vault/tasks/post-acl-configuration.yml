@@ -1,0 +1,41 @@
+---
+- name: Ensure systemd service is enabled and started.
+  ansible.builtin.systemd:
+    name: "{{ vault_service_name }}"
+    enabled: true
+    state: started
+
+- name: Check the Vault initialization status.
+  ansible.builtin.shell: "{{ vault_binary }} status | grep -i initialized | awk '{print $2}'"
+  environment:
+    VAULT_ADDR: "{{ vault_address }}"
+    VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+    VAULT_SKIP_VERIFY: "true"
+  changed_when: false
+  register: vault_is_initialized
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+
+- name: Initialize the Vault.
+  ansible.builtin.command: "{{ vault_binary }} operator init"
+  environment:
+    VAULT_ADDR: "{{ vault_address }}"
+    VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+    VAULT_SKIP_VERIFY: "true"
+  changed_when: false
+  register: vault_init_output
+  when:
+    - vault_is_initialized.stdout == "false"
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+
+- name: Store Vault master keys local for safekeeping.
+  ansible.builtin.copy:
+    content: "{{ vault_init_output.stdout }}"
+    dest: "{{ vault_bootstrap_init_local_path }}"
+    mode: 0644
+  become: false
+  when:
+    - vault_is_initialized.stdout == "false"
+  delegate_to: localhost
+  run_once: true

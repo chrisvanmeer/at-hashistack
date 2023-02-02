@@ -1,0 +1,14 @@
+---
+- name: "Ensure Hashicorp repository is present."
+  ansible.builtin.yum_repository:
+    name: HashiCorp
+    description: HashiCorp Repository
+    baseurl: "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable"
+    mirrorlist: "https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo"
+    gpgcheck: false
+    enabled: true
+
+- name: "Ensure packages are present."
+  ansible.builtin.yum:
+    name: "{{ hashicorp_product_selection }}"
+    state: present

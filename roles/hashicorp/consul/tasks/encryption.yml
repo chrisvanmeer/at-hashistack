@@ -1,0 +1,149 @@
+---
+# CA CERTIFICATE
+- name: CA Certificate.
+  block:
+    # FIRST SERVER
+    - name: CA - First server actions.
+      block:
+        - name: CA - Register first server as a fact.
+          ansible.builtin.set_fact:
+            consul_first_server_hostname: "{{ inventory_hostname }}"
+          delegate_to: "{{ groups['consul_servers'] | first }}"
+          run_once: true
+
+        - name: CA - Look for existing CA certificate on first server as benchmark.
+          ansible.builtin.stat:
+            path: "{{ consul_etc_directory }}/consul-agent-ca.pem"
+          register: consul_agent_ca_file_first
+
+        - name: CA - CA Certificate creation.
+          block:
+            - name: CA - Create CA Certificate if not exists.
+              ansible.builtin.shell: "{{ consul_binary }} tls ca create -days {{ consul_tls_ca_certificate_days }}"
+              args:
+                chdir: "{{ consul_etc_directory }}"
+              register: consul_tls_ca_certificate_create
+
+          when:
+            - ansible_hostname in groups['consul_servers']
+            - not consul_agent_ca_file_first.stat.exists
+          delegate_to: "{{ groups['consul_servers'] | first }}"
+          run_once: true
+
+        - name: CA - CA Certificate gathering.
+          block:
+            - name: CA - Get file location of CA Certificate.
+              ansible.builtin.set_fact:
+                consul_tls_ca_certificate_file: "{{ consul_etc_directory }}/{{ consul_tls_ca_certificate_create.stdout_lines[0].split('==> Saved ')[1] }}"
+
+            - name: CA - Get contents of CA Certificate.
+              ansible.builtin.shell: "cat {{ consul_tls_ca_certificate_file }}"
+              register: consul_tls_ca_certificate_content_tmp
+              changed_when: false
+
+            - name: CA - Register contents of CA Certificate as a fact.
+              ansible.builtin.set_fact:
+                consul_tls_ca_certificate_content: "{{ consul_tls_ca_certificate_content_tmp.stdout }}"
+
+            - name: CA - Get file location of CA key.
+              ansible.builtin.set_fact:
+                consul_tls_ca_key_file: "{{ consul_etc_directory }}/{{ consul_tls_ca_certificate_create.stdout_lines[1].split('==> Saved ')[1] }}"
+
+            - name: CA - Get contents of CA key.
+              ansible.builtin.shell: "cat {{ consul_tls_ca_key_file }}"
+              register: consul_tls_ca_key_content_tmp
+              changed_when: false
+
+            - name: CA - Register contents of CA key as a fact.
+              ansible.builtin.set_fact:
+                consul_tls_ca_key_content: "{{ consul_tls_ca_key_content_tmp.stdout }}"
+
+          when:
+            - ansible_hostname in groups['consul_servers']
+          delegate_to: "{{ groups['consul_servers'] | first }}"
+          run_once: true
+
+    # OTHER NODES
+    - name: CA - Ensure CA certificate and key are present on all other nodes.
+      ansible.builtin.copy:
+        dest: "{{ consul_etc_directory }}/{{ item.dest }}"
+        content: "{{ item.content }}"
+        owner: "{{ consul_data_directory_owner }}"
+        group: "{{ consul_data_directory_group }}"
+        mode: "{{ item.mode }}"
+      with_items:
+        - dest: "consul-agent-ca.pem"
+          content: "{{ consul_tls_ca_certificate_content }}"
+          mode: "0644"
+        - dest: "consul-agent-ca-key.pem"
+          content: "{{ consul_tls_ca_key_content }}"
+          mode: "0600"
+      loop_control:
+        label: "{{ item.dest }}"
+      when:
+        - consul_tls_ca_certificate_content is defined
+        - inventory_hostname != consul_first_server_hostname
+
+# SERVER CERTIFICATES
+- name: Server Certificates.
+  block:
+    - name: Server - Look for existing server certificate.
+      ansible.builtin.stat:
+        path: "{{ consul_etc_directory }}/{{ datacenter_name }}-server-consul-0.pem"
+      register: consul_server_certificate_details
+
+    - name: Server - Create server certificate.
+      ansible.builtin.command: "{{ consul_binary }} tls cert create -server -dc {{ datacenter_name }} -days {{ consul_tls_server_certificate_days }}"
+      args:
+        chdir: "{{ consul_etc_directory }}"
+      when: not consul_server_certificate_details.stat.exists
+  when: ansible_hostname in groups['consul_servers']
+
+# CLIENT CERTIFICATES
+- name: Client Certificates.
+  block:
+    - name: Client - Look for existing client certificate.
+      ansible.builtin.stat:
+        path: "{{ consul_etc_directory }}/{{ datacenter_name }}-client-consul-0.pem"
+      register: consul_client_certificate_details
+
+    - name: Client - Create client certificate.
+      ansible.builtin.command: "{{ consul_binary }} tls cert create -client -dc {{ datacenter_name }} -days {{ consul_tls_client_certificate_days }}"
+      args:
+        chdir: "{{ consul_etc_directory }}"
+      when: not consul_client_certificate_details.stat.exists
+  when: ansible_hostname in groups['consul_clients']
+
+# FILE PERMISSIONS
+- name: Permissions - Ensure the right permissions and owners are set.
+  ansible.builtin.file:
+    path: "{{ consul_etc_directory }}"
+    state: directory
+    recurse: true
+    owner: consul
+    group: consul
+
+# ENCRYPTION KEY
+- name: Encryption key.
+  block:
+    - name: Key - Check the first server if we are dealing with an already running cluster.
+      ansible.builtin.stat:
+        path: "{{ consul_systemd_service_file }}"
+      register: consul_systemd_service_file_details
+
+    - name: Key - Generate encryption key when cluster is not running yet.
+      block:
+        - name: Key - Run the consul keygen command.
+          ansible.builtin.command: "consul keygen"
+          register: consul_encryption_key_tmp
+          changed_when: false
+
+        - name: Key - Retrieve encryption key and store it as a fact.
+          ansible.builtin.set_fact:
+            consul_encryption_key: "{{ consul_encryption_key_tmp.stdout }}"
+      when:
+        - ansible_hostname in groups['consul_servers']
+        - not consul_systemd_service_file_details.stat.exists
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  run_once: true
+  when: consul_encryption_key is not defined

@@ -1,0 +1,31 @@
+---
+- name: Preparations.
+  ansible.builtin.include_tasks: preparations.yml
+
+- name: Pre-ACL configuration.
+  ansible.builtin.include_tasks: pre-acl-configuration.yml
+  when: ansible_hostname in groups['vault_servers']
+
+- name: Public Key Infrastructure.
+  ansible.builtin.include_tasks: pki.yml
+
+- name: ACL.
+  ansible.builtin.include_tasks: acl.yml
+  when: ansible_hostname in groups['vault_servers']
+
+- name: Post-ACL configuration.
+  ansible.builtin.include_tasks: post-acl-configuration.yml
+  when: ansible_hostname in groups['vault_servers']
+
+- name: Unseal Vault.
+  ansible.builtin.include_tasks: unseal.yml
+  when: ansible_hostname in groups['vault_servers']
+  tags: unseal
+
+- name: Preparations for usage.
+  ansible.builtin.include_tasks: prep-for-usage.yml
+  when: ansible_hostname in groups['vault_servers']
+
+- name: Logging.
+  ansible.builtin.include_tasks: logging.yml
+  when: ansible_hostname in groups['vault_servers']

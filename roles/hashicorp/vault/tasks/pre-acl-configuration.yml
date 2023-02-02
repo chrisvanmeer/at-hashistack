@@ -1,0 +1,19 @@
+---
+- name: Ensure general configuration is present.
+  ansible.builtin.template:
+    src: "vault.hcl.j2"
+    dest: "{{ vault_etc_directory }}/vault.hcl"
+    mode: "0644"
+    owner: "{{ vault_data_directory_user }}"
+    group: "{{ vault_data_directory_group }}"
+
+- name: Ensure systemd service is present.
+  ansible.builtin.template:
+    src: "vault.service.j2"
+    dest: "{{ vault_systemd_service_file }}"
+    mode: 0644
+  notify: Restart Vault
+
+- name: Ensure systemd is reloaded.
+  ansible.builtin.systemd:
+    daemon_reload: true

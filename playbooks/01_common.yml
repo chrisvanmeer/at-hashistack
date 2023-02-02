@@ -1,0 +1,7 @@
+---
+- name: Common preparations
+  hosts: all
+  become: true
+
+  roles:
+    - name: common

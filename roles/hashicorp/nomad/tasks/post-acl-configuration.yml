@@ -1,0 +1,26 @@
+---
+- name: Run nomad server members command.
+  ansible.builtin.command: "{{ nomad_binary }} server members"
+  environment:
+    NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+  register: nomad_server_members_output
+  changed_when: false
+  when: ansible_hostname in groups['nomad_servers']
+
+- name: Output the results of the nomad server members command.
+  ansible.builtin.debug:
+    var: nomad_server_members_output.stdout_lines
+  when: ansible_hostname in groups['nomad_servers']
+
+- name: Run nomad node status command.
+  ansible.builtin.command: "{{ nomad_binary }} node status"
+  environment:
+    NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+  register: nomad_node_status_output
+  changed_when: false
+  when: ansible_hostname in groups['nomad_clients']
+
+- name: Output the results of the nomad node status command.
+  ansible.builtin.debug:
+    var: nomad_node_status_output.stdout_lines
+  when: ansible_hostname in groups['nomad_clients']

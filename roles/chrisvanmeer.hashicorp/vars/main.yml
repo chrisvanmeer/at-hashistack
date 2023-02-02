@@ -1,0 +1,3 @@
+---
+# vars file for chrisvanmeer.hashicorp-role
+hashicorp_task_file: "setup-hashicorp-{{ ansible_distribution }}.yml"

@@ -1,0 +1,16 @@
+# Running integration tests requires you set up an integration_config.yml that
+# tells the tests where to find Vault and other dependencies.
+# See the contributor guide at:
+# https://docs.ansible.com/ansible/devel/collections/community/hashi_vault/docsite/contributor_guide.html#integration-tests
+---
+# this is just a small sample of what the file looks like,
+# this file is not valid on its own. See the guide for details.
+
+vault_version: latest
+
+vault_dev_root_token_id: 47542cbc-6bf8-4fba-8eda-02e0a0d29a0a
+
+vault_proxy_server: 'http://127.0.0.1:8001'
+
+vault_test_server_http: http://localhost:8200
+vault_test_server_https: https://localhost:8300

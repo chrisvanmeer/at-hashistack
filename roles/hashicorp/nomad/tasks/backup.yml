@@ -1,0 +1,70 @@
+---
+- name: Retrieve Secret ID from bootstrap output.
+  ansible.builtin.shell: "awk '/Secret ID/ {print $4}' {{ nomad_bootstrap_token_local_path }}"
+  changed_when: false
+  become: false
+  delegate_to: localhost
+  run_once: true
+  register: nomad_acl_bootstrap_output
+  tags: backup
+
+- name: Read Snapshot policy
+  ansible.builtin.shell: "{{ nomad_binary }} acl policy list | awk '/Token for snapshots/ {print $1, $2, $3}'"
+  environment:
+    NOMAD_TOKEN: "{{ nomad_acl_bootstrap_output.stdout }}"
+  changed_when: false
+  register: nomad_acl_policy_read_snapshot
+
+- name: Snapshots ACL.
+  block:
+    - name: Create ACL token using the above policy.
+      ansible.builtin.command: "{{ nomad_binary }} acl token create -name='{{ nomad_snapshot_token_name }}' -global -type='management'"
+      environment:
+        NOMAD_TOKEN: "{{ nomad_acl_bootstrap_output.stdout }}"
+      changed_when: false
+      register: snapshot_policy_token_output_raw
+
+    - name: Store bootstrap token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ snapshot_policy_token_output_raw.stdout }}"
+        dest: "{{ nomad_snapshot_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  when:
+    - not nomad_acl_policy_read_snapshot.stdout == nomad_snapshot_token_name
+  run_once: true
+  tags: backup
+
+- name: Snapshot setup.
+  block:
+    - name: Ensure backup directories are present.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0700
+        owner: "{{ nomad_snapshot_backup_location_owner }}"
+        group: "{{ nomad_snapshot_backup_location_group }}"
+      with_items:
+        - "{{ nomad_snapshot_backup_main }}"
+        - "{{ nomad_snapshot_backup_location }}"
+
+    - name: Ensure snapshot batch file is present.
+      ansible.builtin.template:
+        src: "{{ nomad_snapshot_batchfile_template }}"
+        dest: "{{ nomad_snapshot_batchfile_location }}"
+        owner: "{{ nomad_snapshot_backup_location_owner }}"
+        group: "{{ nomad_snapshot_backup_location_group }}"
+        mode: 0700
+
+    - name: Ensure crontab for snapshot is present.
+      ansible.builtin.cron:
+        name: "Nomad Snapshots"
+        minute: "{{ nomad_snapshot_cron_backup_minute }}"
+        hour: "{{ nomad_snapshot_cron_backup_hour }}"
+        job: "{{ nomad_snapshot_batchfile_location }} > /dev/null"
+        user: "{{ nomad_snapshot_backup_location_owner }}"
+        state: present
+  tags: backup

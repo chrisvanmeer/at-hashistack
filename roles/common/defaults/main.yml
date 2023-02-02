@@ -1,0 +1,19 @@
+---
+
+pip_install_packages:
+  - name: docker
+  - name: hvac
+  - name: python-nomad
+
+basic_apt_packages:
+  - atop
+  - curl
+  - git
+  - jq
+  - lynx
+  - nmap
+  - tree
+  - vim
+
+bootstrap_location: "{{ ansible_user_dir }}/bootstrap-tokens"
+safeguard_location: "{{ ansible_user_dir }}/safeguard-config"

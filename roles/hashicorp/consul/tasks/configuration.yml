@@ -1,0 +1,180 @@
+---
+# We don't want to overwrite an existing config since this would be then reverted back to a non-ACL config file which would crash the whole system.
+- name: Check for existence of the Consul config file.
+  ansible.builtin.stat:
+    path: "{{ consul_etc_directory }}/consul.hcl"
+  register: consul_config_present
+
+- name: Consul - Configuration.
+  block:
+
+    - name: Ensure configuration is present on the server.
+      ansible.builtin.template:
+        src: "consul.hcl.j2"
+        dest: "{{ consul_etc_directory }}/consul.hcl"
+        mode: "0644"
+        owner: "{{ consul_data_directory_owner }}"
+        group: "{{ consul_data_directory_group }}"
+      notify: Restart Consul
+
+    - name: Ensure systemd service is present.
+      ansible.builtin.template:
+        src: "consul.service.j2"
+        dest: "{{ consul_systemd_service_file }}"
+        mode: 0644
+      notify: Restart Consul
+
+    - name: Ensure systemd is reloaded.
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Ensure systemd service is enabled and started.
+      ansible.builtin.systemd:
+        name: "{{ consul_service_name }}"
+        enabled: true
+        state: started
+
+    - name: A little pause to allow for the consul members to find each other.
+      ansible.builtin.pause:
+        seconds: "{{ consul_pause_seconds }}"
+
+    - name: Run consul members command.
+      ansible.builtin.command: "{{ consul_binary }} members"
+      changed_when: false
+      ignore_errors: true
+      register: consul_members_output
+
+    - name: Output the results of the consul members command.
+      ansible.builtin.debug:
+        var: consul_members_output.stdout_lines
+
+  when:
+    - not consul_config_present.stat.exist
+
+# CONSUL ACL BOOTSTRAP
+- name: Bootstrap - Check if system is already bootstrapped.
+  ansible.builtin.stat:
+    path: "{{ consul_bootstrapped_true_file }}"
+  register: consul_bootstrapped
+  when: ansible_hostname in groups['consul_servers']
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  run_once: true
+
+- name: ACL
+  block:
+    - name: Bootstrap - Run consul acl bootstrap command.
+      ansible.builtin.command: "{{ consul_binary }} acl bootstrap"
+      changed_when: false
+      register: consul_acl_bootstrap_raw
+
+    - name: Bootstrap - Store bootstrap token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ consul_acl_bootstrap_raw.stdout }}"
+        dest: "{{ consul_bootstrap_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: Consul - Ensure Consul bootstrap check file is in place.
+      ansible.builtin.copy:
+        dest: "{{ consul_bootstrapped_true_file }}"
+        content: "This cluster was Consul bootstrapped on {{ ansible_date_time.date }} {{ ansible_date_time.time }}{{ ansible_date_time.tz }}.\n"
+        mode: 0644
+  when:
+    - ansible_hostname in groups['consul_servers']
+    - not consul_bootstrapped.stat.exists
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  run_once: true
+
+- name: Bootstrap - Retrieve Secret ID from bootstrap output.
+  ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
+  changed_when: false
+  become: false
+  delegate_to: localhost
+  register: consul_acl_bootstrap_output
+
+- name: Bootstrap - Set the Secret ID as a fact.
+  ansible.builtin.set_fact:
+    consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
+
+- name: Read agent policy
+  ansible.builtin.shell: "{{ consul_binary }} acl policy create -read {{ consul_agent_policy_name }} | awk '/Name/ {print $2}'"
+  environment:
+    CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+  changed_when: false
+  register: consul_acl_policy_read_consul_agent
+
+- name: Consul Agent Policy - Creation.
+  block:
+    - name: Ensure consul-agent-policy file is present on the system.
+      ansible.builtin.copy:
+        src: "{{ consul_agent_policy_file_local }}"
+        dest: "{{ consul_agent_policy_file_remote }}"
+        mode: 0644
+
+    - name: Ensure consul-agent policy is registered.
+      ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ consul_agent_policy_name }} -rules @{{ consul_agent_policy_file_name }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      args:
+        chdir: "{{ consul_data_directory }}/"
+      changed_when: false
+      ignore_errors: true
+
+    - name: Ensure consul agent token is generated.
+      ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ consul_agent_policy_description }}' -policy-name {{ consul_agent_policy_name }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      changed_when: false
+      register: agent_policy_token_output_raw
+
+    - name: Cleanup the placed policy file.
+      ansible.builtin.file:
+        path: "{{ consul_agent_policy_file_remote }}"
+        state: absent
+
+    - name: Store consul agent token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ agent_policy_token_output_raw.stdout }}"
+        dest: "{{ consul_agent_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+  when:
+    - ansible_hostname in groups['consul_servers']
+    - not consul_acl_policy_read_consul_agent.stdout == consul_agent_policy_name
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  run_once: true
+
+- name: Consul Agent Policy - Configuration.
+  block:
+    - name: Retrieve Secret ID from agent token output.
+      ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_agent_token_local_path }}"
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      register: consul_agent_token_output
+
+    - name: Create a fact of the agent token.
+      ansible.builtin.set_fact:
+        consul_agent_token: "{{ consul_agent_token_output.stdout }}"
+
+  when:
+    - ansible_hostname in groups['consul_servers']
+  delegate_to: "{{ groups['consul_servers'] | first }}"
+  run_once: true
+
+- name: Ensure agent token is part of the configuration.
+  ansible.builtin.lineinfile:
+    path: "{{ consul_etc_directory }}/consul.hcl"
+    regexp: '#agent = "<WILL BE FILLED LATER>"'
+    line: '    agent = "{{ consul_agent_token }}"'
+  notify: Restart Consul
+
+- name: Ensure default ACL is set to deny.
+  ansible.builtin.lineinfile:
+    path: "{{ consul_etc_directory }}/consul.hcl"
+    regexp: 'default_policy = "allow"'
+    line: '  default_policy = "deny"'
+  notify: Restart Consul

@@ -1,0 +1,13 @@
+---
+- name: Consul
+  hosts:
+    - consul_servers
+    - consul_clients
+  become: true
+
+  vars:
+    # Uncomment to override the encryption key if you are already running a working cluster.
+    # consul_encryption_key: "gp7chR0aT5A5Zo9t7tiswOVrVktvRTD18bpLawGUOVM="
+
+  roles:
+    - name: hashicorp/consul

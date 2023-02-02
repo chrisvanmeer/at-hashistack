@@ -1,0 +1,19 @@
+---
+- name: Ensure CNI directory exists.
+  ansible.builtin.file:
+    path: "{{ consul_cni_target_directory }}"
+    state: directory
+    mode: 0755
+- name: Ensure CNI plugins exist in the CNI directory.
+  ansible.builtin.unarchive:
+    src: "{{ consul_cni_plugin_url }}"
+    dest: "{{ consul_cni_target_directory }}"
+    remote_src: true
+- name: Ensure sysctl settings are present and loaded.
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: "{{ consul_cni_sysctl_dest_file }}"
+    reload: true
+  with_items: "{{ consul_cni_sysctl_settings }}"

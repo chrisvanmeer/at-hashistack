@@ -1,0 +1,36 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: hashicorp
+  author: chrisvanmeer
+  description: Ansible role for HashiCorp products
+  company: "AT Computing"
+  license: "license (BSD, MIT)"
+  min_ansible_version: "2.4"
+  platforms:
+    - name: Fedora
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - boundary
+    - cloud
+    - consul
+    - hashicorp
+    - nomad
+    - packer
+    - terraform
+    - vagrant
+    - vault
+    - waypoint
+
+allow_duplicates: true

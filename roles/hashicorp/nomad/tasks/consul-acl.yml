@@ -1,0 +1,123 @@
+---
+- name: Check if system is already Consul bootstrapped.
+  ansible.builtin.stat:
+    path: "{{ nomad_consul_bootstrapped_true_file }}"
+  register: nomad_consul_bootstrapped
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
+- name: Consul Policies - Creation.
+  block:
+    - name: Consul - Ensure the Nomad policy files are in place.
+      ansible.builtin.copy:
+        src: "{{ item.local }}"
+        dest: "{{ item.remote }}"
+        mode: 0644
+      with_items:
+        - local: "{{ nomad_consul_server_policy_local_file }}"
+          remote: "{{ nomad_consul_server_policy_remote_file }}"
+        - local: "{{ nomad_consul_client_policy_local_file }}"
+          remote: "{{ nomad_consul_client_policy_remote_file }}"
+
+    - name: Consul - Retrieve Consul Secret ID from bootstrap output.
+      ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      register: consul_acl_bootstrap_output
+
+    - name: Consul - Set the Consul Secret ID as a fact.
+      ansible.builtin.set_fact:
+        consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
+
+    - name: Consul - Ensure that the ACL is present in Consul.
+      ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ item.service }} -rules @{{ item.policyfile }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      args:
+        chdir: "{{ nomad_data_directory }}/"
+      changed_when: false
+      with_items:
+        - service: "{{ nomad_consul_server_service_name }}"
+          policyfile: "{{ nomad_consul_server_policy_remote_file }}"
+        - service: "{{ nomad_consul_client_service_name }}"
+          policyfile: "{{ nomad_consul_client_policy_remote_file }}"
+
+    - name: Consul - Create ACL token for Nomad Servers.
+      ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ nomad_consul_server_token_description }}' -policy-name {{ nomad_consul_server_service_name }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      changed_when: false
+      register: nomad_server_token_creation_raw
+
+    - name: Consul - Store Nomad Server token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ nomad_server_token_creation_raw.stdout }}"
+        dest: "{{ nomad_consul_server_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: Consul - Create ACL token for Nomad Clients.
+      ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ nomad_consul_client_token_description }}' -policy-name {{ nomad_consul_client_service_name }}"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      changed_when: false
+      register: nomad_client_token_creation_raw
+
+    - name: Consul - Store Nomad Client token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ nomad_client_token_creation_raw.stdout }}"
+        dest: "{{ nomad_consul_client_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: Consul - Cleanup generated files which are not needed anymore.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ nomad_consul_server_policy_remote_file }}"
+        - "{{ nomad_consul_client_policy_remote_file }}"
+
+    - name: Consul - Ensure Consul bootstrap check file is in place.
+      ansible.builtin.copy:
+        dest: "{{ nomad_consul_bootstrapped_true_file }}"
+        content: "This cluster was Consul bootstrapped on {{ ansible_date_time.date }} {{ ansible_date_time.time }}{{ ansible_date_time.tz }}.\n"
+        mode: 0644
+
+  when:
+    - ansible_hostname in groups['nomad_servers']
+    - not nomad_consul_bootstrapped.stat.exists
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
+- name: Consul Policies - Configuration.
+  block:
+
+    - name: Consul - Retrieve Secret ID from Nomad Server token output.
+      ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ nomad_consul_server_token_local_path }}"
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      register: nomad_server_token_output
+
+    - name: Consul - Set the Secret ID as a fact.
+      ansible.builtin.set_fact:
+        nomad_server_token: "{{ nomad_server_token_output.stdout }}"
+
+    - name: Consul - Retrieve Secret ID from Nomad Client token output.
+      ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ nomad_consul_client_token_local_path }}"
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      register: nomad_client_token_output
+
+    - name: Consul - Set the Secret ID as a fact.
+      ansible.builtin.set_fact:
+        nomad_client_token: "{{ nomad_client_token_output.stdout }}"
+
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true

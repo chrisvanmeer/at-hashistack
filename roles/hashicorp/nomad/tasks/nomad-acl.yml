@@ -1,0 +1,92 @@
+---
+- name: Check if system is already bootstrapped.
+  ansible.builtin.stat:
+    path: "{{ nomad_bootstrapped_true_file }}"
+  register: nomad_bootstrapped
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
+- name: Nomad Bootstrap ACL.
+  block:
+    - name: ACL - Run nomad acl bootstrap command.
+      ansible.builtin.command: "{{ nomad_binary }} acl bootstrap"
+      changed_when: false
+      register: nomad_acl_bootstrap_raw
+
+    - name: ACL - Store bootstrap token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ nomad_acl_bootstrap_raw.stdout }}"
+        dest: "{{ nomad_bootstrap_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: ACL - Retrieve Secret ID from bootstrap output.
+      ansible.builtin.shell: "awk '/Secret ID/ {print $4}' {{ nomad_bootstrap_token_local_path }}"
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      register: nomad_acl_bootstrap_output
+
+    - name: ACL - Set the Secret ID as a fact.
+      ansible.builtin.set_fact:
+        nomad_acl_bootstrap_secret_id: "{{ nomad_acl_bootstrap_output.stdout }}"
+
+    - name: ACL - Create Ops Management token.
+      ansible.builtin.command: "{{ nomad_binary }} acl token create -name='{{ nomad_ops_token_name }}' -global -type='management'"
+      register: nomad_ops_token_output
+      environment:
+        NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+
+    - name: ACL - Store Ops Management token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ nomad_ops_token_output.stdout }}"
+        dest: "{{ nomad_ops_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: ACL - Create Client token.
+      ansible.builtin.command: "{{ nomad_binary }} acl token create -name='{{ nomad_client_token_name }}' -global -policy='{{ nomad_client_policy_name }}'"
+      register: nomad_client_token_output
+      environment:
+        NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+
+    - name: ACL - Store Client token local for safekeeping.
+      ansible.builtin.copy:
+        content: "{{ nomad_client_token_output.stdout }}"
+        dest: "{{ nomad_client_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: ACL - Ensure client policy file is in place.
+      ansible.builtin.copy:
+        src: "{{ nomad_client_policy_local_file }}"
+        dest: "{{ nomad_client_policy_remote_file }}"
+        mode: "0644"
+
+    - name: ACL - Ensure the client policy is registered.
+      ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_client_policy_description }}' {{ nomad_client_policy_name}} {{ nomad_client_policy_remote_file }}"
+      environment:
+        NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+
+    - name: ACL - Ensure bootstrap check file is in place.
+      ansible.builtin.copy:
+        dest: "{{ nomad_bootstrapped_true_file }}"
+        content: "This cluster was bootstrapped on {{ ansible_date_time.date }} {{ ansible_date_time.time }}{{ ansible_date_time.tz }}.\n"
+        mode: 0644
+
+    - name: ACL - Cleanup nomad client policy file which is not needed anymore.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ nomad_client_policy_remote_file }}"
+
+  when:
+    - ansible_hostname in groups['nomad_servers']
+    - not nomad_bootstrapped.stat.exists
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true

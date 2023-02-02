@@ -1,0 +1,9 @@
+---
+dnsmasq_domain: "intra.247kooi.com"
+dnsmasq_default_domain_servers:
+  - "192.168.2.40"
+  - "192.168.2.42"
+  - "10.10.10.10"
+  - "10.10.10.66"
+dnsmasq_search_dns_suffix_1: "dra.nl.intra.247kooi.com"
+dnsmasq_search_dns_suffix_2: "intra.247kooi.com"

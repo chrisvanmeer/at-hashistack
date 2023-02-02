@@ -1,0 +1,11 @@
+---
+- name: Docker
+  hosts: docker_clients
+  become: true
+
+  vars:
+    docker_users:
+      - "{{ ansible_env.SUDO_USER }}"
+
+  roles:
+    - name: geerlingguy.docker

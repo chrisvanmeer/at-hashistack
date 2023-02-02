@@ -1,0 +1,21 @@
+---
+- name: "Ensure Hashicorp signing key is present."
+  ansible.builtin.apt_key:
+    url: https://apt.releases.hashicorp.com/gpg
+    keyring: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    state: present
+
+- name: "Ensure Hashicorp repository is present."
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+    state: present
+
+- name: "Ensure apt is updated."
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: "Ensure packages are present."
+  ansible.builtin.apt:
+    name: "{{ hashicorp_product_selection }}"
+    state: present
