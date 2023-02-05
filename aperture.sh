@@ -73,8 +73,12 @@ output() {
   echo -e "$NR. $DESC$DOTS[$BEGC$RESULT$ENDC]"
 }
 
+curl () {
+  command curl --connect-timeout 1 --max-time 2"$@"
+}
+
 portcheck() {
-  STAT=$(nc -z $1 $2; echo $?)
+  STAT=$(nc -w 1 -z $1 $2; echo $?)
   if [ $STAT -eq 0 ]; then
     RES="SUCCEEDED"
   else
