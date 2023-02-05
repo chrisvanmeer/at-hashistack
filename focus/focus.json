@@ -1,0 +1,172 @@
+{
+    "Job": {
+        "Region": null,
+        "Namespace": null,
+        "ID": "focus",
+        "Name": "focus",
+        "Type": "service",
+        "Priority": null,
+        "AllAtOnce": null,
+        "Datacenters": [
+            "velp"
+        ],
+        "Constraints": null,
+        "Affinities": null,
+        "TaskGroups": [
+            {
+                "Name": "focus",
+                "Count": 1,
+                "Constraints": null,
+                "Affinities": null,
+                "Tasks": [
+                    {
+                        "Name": "focus",
+                        "Driver": "docker",
+                        "User": "",
+                        "Lifecycle": null,
+                        "Config": {
+                            "image": "chrisvanmeer/focus",
+                            "ports": [
+                                "http"
+                            ]
+                        },
+                        "Constraints": null,
+                        "Affinities": null,
+                        "Env": null,
+                        "Services": null,
+                        "Resources": {
+                            "CPU": 100,
+                            "Cores": null,
+                            "MemoryMB": 50,
+                            "MemoryMaxMB": null,
+                            "DiskMB": null,
+                            "Networks": null,
+                            "Devices": null,
+                            "IOPS": null
+                        },
+                        "RestartPolicy": null,
+                        "Meta": null,
+                        "KillTimeout": null,
+                        "LogConfig": null,
+                        "Artifacts": null,
+                        "Vault": null,
+                        "Templates": null,
+                        "DispatchPayload": null,
+                        "VolumeMounts": null,
+                        "Leader": false,
+                        "ShutdownDelay": 0,
+                        "KillSignal": "",
+                        "Kind": "",
+                        "ScalingPolicies": null
+                    }
+                ],
+                "Spreads": null,
+                "Volumes": null,
+                "RestartPolicy": null,
+                "ReschedulePolicy": null,
+                "EphemeralDisk": null,
+                "Update": null,
+                "Migrate": null,
+                "Networks": [
+                    {
+                        "Mode": "",
+                        "Device": "",
+                        "CIDR": "",
+                        "IP": "",
+                        "DNS": null,
+                        "ReservedPorts": null,
+                        "DynamicPorts": [
+                            {
+                                "Label": "http",
+                                "Value": 0,
+                                "To": 8080,
+                                "HostNetwork": ""
+                            }
+                        ],
+                        "Hostname": "",
+                        "MBits": null
+                    }
+                ],
+                "Meta": null,
+                "Services": [
+                    {
+                        "Name": "focus",
+                        "Tags": null,
+                        "CanaryTags": null,
+                        "EnableTagOverride": false,
+                        "PortLabel": "http",
+                        "AddressMode": "",
+                        "Address": "",
+                        "Checks": [
+                            {
+                                "Name": "focus-http",
+                                "Type": "http",
+                                "Command": "",
+                                "Args": null,
+                                "Path": "/",
+                                "Protocol": "",
+                                "PortLabel": "",
+                                "Expose": false,
+                                "AddressMode": "",
+                                "Advertise": "",
+                                "Interval": 10000000000,
+                                "Timeout": 2000000000,
+                                "InitialStatus": "",
+                                "TLSSkipVerify": false,
+                                "Header": null,
+                                "Method": "",
+                                "CheckRestart": null,
+                                "GRPCService": "",
+                                "GRPCUseTLS": false,
+                                "TaskName": "",
+                                "SuccessBeforePassing": 0,
+                                "FailuresBeforeCritical": 0,
+                                "Body": "",
+                                "OnUpdate": ""
+                            }
+                        ],
+                        "CheckRestart": null,
+                        "Connect": null,
+                        "Meta": null,
+                        "CanaryMeta": null,
+                        "TaggedAddresses": null,
+                        "TaskName": "",
+                        "OnUpdate": "",
+                        "Provider": ""
+                    }
+                ],
+                "ShutdownDelay": null,
+                "StopAfterClientDisconnect": null,
+                "MaxClientDisconnect": null,
+                "Scaling": null,
+                "Consul": null
+            }
+        ],
+        "Update": null,
+        "Multiregion": null,
+        "Spreads": null,
+        "Periodic": null,
+        "ParameterizedJob": null,
+        "Reschedule": null,
+        "Migrate": null,
+        "Meta": null,
+        "ConsulToken": null,
+        "VaultToken": null,
+        "Stop": null,
+        "ParentID": null,
+        "Dispatched": false,
+        "DispatchIdempotencyToken": null,
+        "Payload": null,
+        "ConsulNamespace": null,
+        "VaultNamespace": null,
+        "NomadTokenID": null,
+        "Status": null,
+        "StatusDescription": null,
+        "Stable": null,
+        "Version": null,
+        "SubmitTime": null,
+        "CreateIndex": null,
+        "ModifyIndex": null,
+        "JobModifyIndex": null
+    }
+}

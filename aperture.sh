@@ -52,8 +52,18 @@ output() {
     BEGC=$FAIL
   elif [ $RESULT == "TRUE" ]; then
     BEGC=$PASS
+  elif [ $RESULT == "STARTED" ]; then
+    BEGC=$PASS
+  elif [ $RESULT == "RUNNING" ]; then
+    BEGC=$PASS
+  elif [ $RESULT == "HEALTHY" ]; then
+    BEGC=$PASS
   elif [ $RESULT == "FALSE" ]; then
     BEGC=$FAIL
+  elif [ $RESULT == "UNHEALTHY" ]; then
+    BEGC=$FAIL
+  elif [ $RESULT == "STOPPED" ]; then
+    BEGC=$NEUT
   elif [ $RESULT -eq 0 ]; then
     BEGC=$NEUT
   else
@@ -228,6 +238,45 @@ function nomad_checks() {
   output $i "Retrieving number of Nomad nodes from (API /nodes)" $NOMAD_NODES
   ((i=i+1))
 
+  ### Starting Nomad test job
+  echo ""
+  NOMAD_TEST_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" --request "POST" --data @focus/focus.json http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/jobs &> /dev/null; echo $?)
+  if [ $NOMAD_TEST_JOB -eq 0 ]; then
+    STAT="STARTED"
+  else
+    STAT="FAILED"
+  fi
+  output $i "Starting Focus test job (API /jobs)" $STAT
+  ((i=i+1))
+
+  sleep 5
+
+  ### Reading Nomad test job
+  NOMAD_READ_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/job/focus/summary | jq -r .Summary.focus.Running)
+  if [ $NOMAD_READ_JOB -eq 1 ]; then
+    STAT="RUNNING"
+  else
+    STAT="FAILED"
+  fi
+  output $i "Reading Focus job running status (API /job/focus/summary)" $STAT
+  ((i=i+1))
+
+  sleep 5
+
+  ### Consul service for Focus
+  NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/focus | jq -r ".[] | .Status" )
+  if [ "$NOMAD_JOB_CONSUL" = "passing" ]; then
+    STAT="HEALTHY"
+  else
+    STAT="UNHEALTHY"
+  fi
+  output $i "Checking Consul for registered Focus service and passing health check (API /health/checks/focus)" $STAT
+  ((i=i+1))
+
+  ### Delete Focus job
+  NOMAD_DELETE_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" --request DELETE http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/job/focus?purge=true | jq -r)
+  output $i "Deleting Focus nomad job" "STOPPED"
+  ((i=i+1))
 
   echo ""
 
