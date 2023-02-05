@@ -41,6 +41,7 @@
         name: systemd-resolved
         state: stopped
         enabled: false
+      when: ansible_os_family == 'Debian'
 
     - name: Ensure new resolv.conf file is present.
       ansible.builtin.template:
