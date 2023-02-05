@@ -1,6 +1,7 @@
 ---
 - name: dnsmasq
   hosts:
+    - management
     - consul_servers
     - consul_clients
   become: true

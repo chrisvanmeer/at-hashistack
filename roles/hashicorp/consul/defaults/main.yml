@@ -1,5 +1,5 @@
 ---
-bootstrap_location: "{{ ansible_user_dir }}/bootstrap-tokens"
+bootstrap_location: "/home/{{ ansible_env.SUDO_USER }}/bootstrap-tokens"
 hashicorp_datacenter_name: "velp"
 
 consul_binary: "/usr/bin/consul"

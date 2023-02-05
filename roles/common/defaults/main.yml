@@ -5,7 +5,7 @@ pip_install_packages:
   - name: hvac
   - name: python-nomad
 
-basic_apt_packages:
+basic_packages:
   - atop
   - curl
   - git
@@ -15,5 +15,5 @@ basic_apt_packages:
   - tree
   - vim
 
-bootstrap_location: "{{ ansible_user_dir }}/bootstrap-tokens"
-safeguard_location: "{{ ansible_user_dir }}/safeguard-config"
+bootstrap_location: "/home/{{ ansible_env.SUDO_USER }}/bootstrap-tokens"
+safeguard_location: "/home/{{ ansible_env.SUDO_USER }}/safeguard-config"
