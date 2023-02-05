@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # Servers
-CONSUL_SERVERS=( server1 server2 server3 )
-CONSUL_CLIENTS=( client1 client2 client3 client4 )
-VAULT_SERVERS=( server1 server2 server3 )
-NOMAD_SERVERS=( server1 server2 server3 )
-DOCKER_SERVER="client1"
+CONSUL_SERVERS=( consul1 )
+CONSUL_CLIENTS=( vault1 nomad1 docker1 )
+VAULT_SERVERS=( vault1 )
+NOMAD_SERVERS=( nomad1 )
 
 # Ports
 CONSUL_PORT="8500"
@@ -74,7 +73,7 @@ output() {
 }
 
 curl () {
-  command curl --connect-timeout 1 --max-time 2"$@"
+  command curl --connect-timeout 1 --max-time 2 "$@"
 }
 
 portcheck() {
