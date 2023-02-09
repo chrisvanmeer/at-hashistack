@@ -1,6 +1,6 @@
 ---
 bootstrap_location: "/home/{{ ansible_env.SUDO_USER }}/bootstrap-tokens"
-hashicorp_datacenter_name: "velp"
+datacenter_name: "velp"
 
 vault_binary: "/usr/bin/vault"
 vault_etc_directory: "/etc/vault.d"
@@ -56,10 +56,10 @@ vault_ssl_server_subject_alt_names:
   - "DNS:active.vault.service.consul"
   - "DNS:standby.vault.service.consul"
   - "DNS:*.vault.service.consul"
-  - "DNS:vault.service.{{ hashicorp_datacenter_name }}.consul"
-  - "DNS:active.vault.service.{{ hashicorp_datacenter_name }}.consul"
-  - "DNS:standby.vault.service.{{ hashicorp_datacenter_name }}.consul"
-  - "DNS:*.vault.service.{{ hashicorp_datacenter_name }}.consul"
+  - "DNS:vault.service.{{ datacenter_name }}.consul"
+  - "DNS:active.vault.service.{{ datacenter_name }}.consul"
+  - "DNS:standby.vault.service.{{ datacenter_name }}.consul"
+  - "DNS:*.vault.service.{{ datacenter_name }}.consul"
   - "IP:127.0.0.1"
 
 vault_ssl_local_dir: "/usr/local/share/ca-certificates"

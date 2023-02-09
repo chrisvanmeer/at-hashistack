@@ -1,6 +1,6 @@
 ---
 bootstrap_location: "/home/{{ ansible_env.SUDO_USER }}/bootstrap-tokens"
-hashicorp_datacenter_name: "velp"
+datacenter_name: "velp"
 
 nomad_binary: "/usr/bin/nomad"
 nomad_etc_directory: "/etc/nomad.d"

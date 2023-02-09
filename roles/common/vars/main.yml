@@ -1,4 +1,9 @@
 ---
+hashicorp_product_selection:
+  - boundary
+  - consul
+  - nomad
+  - vault
 
 pip_install_packages:
   - name: docker
