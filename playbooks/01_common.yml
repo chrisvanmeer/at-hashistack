@@ -3,5 +3,13 @@
   hosts: all
   become: true
 
+  vars:
+    pip_install_packages:
+      - name: cryptography
+      - name: docker
+      - name: hvac
+      - name: python-nomad
+
   roles:
+    - name: geerlingguy.pip
     - name: common
