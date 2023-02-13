@@ -25,6 +25,10 @@
   run_once: true
 
 - name: Admin user creation.
+  when:
+    - not vault_bootstrap_root_true_file_status.stat.exists
+    - ansible_hostname in groups['vault_servers']
+  run_once: true
   block:
     - name: Ensure admin-policy is in place.
       ansible.builtin.uri:
@@ -132,47 +136,42 @@
           - 204
         validate_certs: false
 
-  when:
-    - not vault_bootstrap_root_true_file_status.stat.exists
-    - ansible_hostname in groups['vault_servers']
+- name: Create fact of admin password.
+  ansible.builtin.set_fact:
+    admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+  delegate_to: localhost
   run_once: true
 
-  - name: Create fact of admin password.
-    ansible.builtin.set_fact:
-      admin_password: "{{ lookup('file', vault_admin_local_path) }}"
-    delegate_to: localhost
-    run_once: true
+- name: Revoke root token.
+  block:
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
 
-  - name: Revoke root token.
-    block:
-      - name: Retrieve client token.
-        ansible.builtin.uri:
-          url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
-          method: POST
-          body_format: json
-          body: '{ "password": "{{ admin_password }}" }'
-          status_code:
-            - 200
-            - 204
-          validate_certs: false
-        register: vault_admin_login_response
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
 
-      - name: Set fact of client token.
-        ansible.builtin.set_fact:
-          admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
-
-      - name: Revoke root token.
-        ansible.builtin.uri:
-          url: "{{ vault_address }}/v1/auth/token/revoke"
-          method: POST
-          headers:
-            X-Vault-Token: "{{ admin_token }}"
-          body_format: json
-          body: '{ "token": "{{ vault_initial_root_token.stdout }}" }'
-          status_code:
-            - 200
-            - 204
-          validate_certs: false
-        register: vault_revoke_response
-    delegate_to: "{{ groups['vault_servers'] | first }}"
-    run_once: true
+    - name: Revoke root token.
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/token/revoke"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        body_format: json
+        body: '{ "token": "{{ vault_initial_root_token.stdout }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_revoke_response
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
