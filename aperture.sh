@@ -188,16 +188,6 @@ fi
 output $i "Reading Consul token from token directory" "$STAT"
 ((i=i+1))
 
-NOMAD_TOKEN="$(awk '/Secret ID/ {print $4}' $TOKENS_DIR/management.nomad.token 2>/dev/null)"
-NOMAD_TOKEN_STAT=$(echo $?)
-if [ $NOMAD_TOKEN_STAT -eq 0 ]; then
-  STAT="DONE"
-else
-  STAT="FAILED"
-fi
-output $i "Reading Nomad token from token directory" "$STAT"
-((i=i+1))
-
 VAULT_USERNAME="atcomputing"
 VAULT_PASSWORD="$(cat $TOKENS_DIR/atcomputing.vault.password 2>/dev/null)"
 VAULT_USERPASS_STAT=$(echo $?)
@@ -207,6 +197,16 @@ else
   STAT="FAILED"
 fi
 output $i "Reading Vault username and password from token directory" "$STAT"
+((i=i+1))
+
+NOMAD_TOKEN="$(awk '/Secret ID/ {print $4}' $TOKENS_DIR/management.nomad.token 2>/dev/null)"
+NOMAD_TOKEN_STAT=$(echo $?)
+if [ $NOMAD_TOKEN_STAT -eq 0 ]; then
+  STAT="DONE"
+else
+  STAT="FAILED"
+fi
+output $i "Reading Nomad token from token directory" "$STAT"
 ((i=i+1))
 
 ### CONSUL
