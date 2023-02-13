@@ -49,7 +49,7 @@
         var: consul_members_output.stdout_lines
 
   when:
-    - not consul_config_present.stat.exist
+    - not consul_config_present.stat.exists
 
 # CONSUL ACL BOOTSTRAP
 - name: Bootstrap - Check if system is already bootstrapped.
