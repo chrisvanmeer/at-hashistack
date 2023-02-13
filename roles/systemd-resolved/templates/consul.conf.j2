@@ -1,0 +1,9 @@
+{% if ansible_hostname in groups['management'] %}
+{% set consulip = hostvars[groups["consul_servers"]|first].ansible_default_ipv4.address %}
+{% else %}
+{% set consulip = "127.0.0.1" %}
+{% endif %}
+[Resolve]
+DNS={{ consulip }}:8600
+DNSSEC=false
+Domains=~consul

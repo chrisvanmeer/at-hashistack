@@ -1,0 +1,26 @@
+---
+- name: Ensure package
+  ansible.builtin.package:
+    name: systemd-resolved
+    state: present
+
+- name: Ensure configuration directory
+  ansible.builtin.file:
+    path: "/etc/systemd/resolved.conf.d/"
+    state: directory
+    owner: "root"
+    mode: 0644
+
+- name: Ensure Consul config
+  ansible.builtin.template:
+    src: "consul.conf.j2"
+    dest: "/etc/systemd/resolved.conf.d/consul.conf"
+    owner: "root"
+    mode: 0644
+  notify: Restart systemd-resolved
+
+- name: Ensure service start
+  ansible.builtin.service:
+    name: "systemd-resolved"
+    enabled: true
+    state: started
