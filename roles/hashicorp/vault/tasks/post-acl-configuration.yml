@@ -8,7 +8,7 @@
     - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']
 
 - name: Check the Vault initialization status.
-  ansible.builtin.shell: "{{ vault_binary }} status | grep -i initialized | awk '{print $2}'"
+  ansible.builtin.shell: "{{ vault_binary }} status | grep -i initialized | awk '{print $2}'" # noqa: risky-shell-pipe
   environment:
     VAULT_ADDR: "{{ vault_address }}"
     VAULT_CACERT: "{{ vault_ssl_ca_dest }}"

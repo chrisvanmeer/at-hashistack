@@ -15,7 +15,6 @@
   roles:
     - name: hashicorp/vault
 
----
 - name: Vault for desktop
   hosts: localhost
   connection: local

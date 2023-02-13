@@ -1,17 +1,7 @@
 ---
-- name: Retrieve Initial Root Token from local file.
-  ansible.builtin.shell: "awk '/Initial Root Token/ {print $4}' {{ vault_bootstrap_init_local_path }}"
-  register: vault_initial_root_token
-  changed_when: false
-  delegate_to: localhost
-  become: false
-  run_once: true
-  tags: unseal
-
-- name: Check the Vault sealed status.
+- name: Check the Vault sealed status. #noqa: risky-shell-pipe
   ansible.builtin.shell: "{{ vault_binary }} status | grep -i sealed | awk '{print $2}'"
   environment:
-    VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
     VAULT_ADDR: "{{ vault_address }}"
     VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
     VAULT_SKIP_VERIFY: "true"
@@ -20,6 +10,10 @@
   tags: unseal
 
 - name: Unseal
+  when:
+    - vault_is_sealed.stdout == "true"
+    - ansible_hostname in groups['vault_servers']
+  tags: unseal
   block:
     - name: Unseal - Retrieve local token file.
       ansible.builtin.set_fact:
@@ -56,7 +50,4 @@
         - "{{ vault_unseal_key_2 }}"
         - "{{ vault_unseal_key_3 }}"
       no_log: true
-  when:
-    - vault_is_sealed.stdout == "true"
-    - ansible_hostname in groups['vault_servers']
-  tags: unseal
+      changed_when: false
