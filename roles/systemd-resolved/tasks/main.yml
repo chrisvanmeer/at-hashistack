@@ -1,4 +1,3 @@
----
 - name: Ensure package
   ansible.builtin.package:
     name: systemd-resolved
@@ -9,7 +8,7 @@
     path: "/etc/systemd/resolved.conf.d/"
     state: directory
     owner: "root"
-    mode: 0644
+    mode: 0755
 
 - name: Ensure Consul config
   ansible.builtin.template:
@@ -24,3 +23,20 @@
     name: "systemd-resolved"
     enabled: true
     state: started
+
+- name: Ensure backup of old resolv file
+  ansible.builtin.file:
+    src: "/etc/resolv.conf"
+    dest: "/etc/resolv.conf.bak"
+    mode: 0644
+
+- name: Ensure removal of old resolv file
+  ansible.builtin.file:
+    src: "/etc/resolv.conf"
+    state: absent
+
+- name: Ensure link to stub resolver
+  ansible.builtin.file:
+    src: "/run/systemd/resolve/stub-resolv.conf"
+    dest: "/etc/resolv.conf"
+    state: link
