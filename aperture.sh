@@ -5,6 +5,9 @@ CONSUL_PORT="8500"
 VAULT_PORT="8200"
 NOMAD_PORT="4646"
 
+# Retrieve bootstrap location from roles var file
+BOOT_LOC=$(grep bootstrap_location roles/common/vars/main.yml | cut -d/ -f4 | tr -d '"')
+
 # Token directory
 TOKENS_DIR="$HOME/hashi-tokens"
 
