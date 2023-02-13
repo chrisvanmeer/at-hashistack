@@ -14,3 +14,16 @@
 
   roles:
     - name: hashicorp/vault
+
+---
+- name: Vault for desktop
+  hosts: localhost
+  connection: local
+  become: false
+
+  tasks:
+    - name: Ensure Vault address
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.HOME }}/.bashrc"
+        search_string: "VAULT_ADDR"
+        line: "export VAULT_ADDR=https://active.vault.service.consul:8200"
