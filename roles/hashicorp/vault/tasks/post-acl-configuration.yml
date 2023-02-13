@@ -4,6 +4,8 @@
     name: "{{ vault_service_name }}"
     enabled: true
     state: started
+  when:
+    - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']
 
 - name: Check the Vault initialization status.
   ansible.builtin.shell: "{{ vault_binary }} status | grep -i initialized | awk '{print $2}'"
@@ -13,6 +15,7 @@
     VAULT_SKIP_VERIFY: "true"
   changed_when: false
   register: vault_is_initialized
+  when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
@@ -25,6 +28,7 @@
   changed_when: false
   register: vault_init_output
   when:
+    - ansible_hostname in groups['vault_servers']
     - vault_is_initialized.stdout == "false"
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
@@ -36,6 +40,7 @@
     mode: 0644
   become: false
   when:
+    ansible_hostname in groups['vault_servers']
     - vault_is_initialized.stdout == "false"
   delegate_to: localhost
   run_once: true

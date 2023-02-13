@@ -10,6 +10,9 @@
       - 204
     validate_certs: false
   register: vault_admin_login_response
+  when: ansible_hostname in groups['vault_servers']
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
 
 - name: Set fact of client token.
   ansible.builtin.set_fact:

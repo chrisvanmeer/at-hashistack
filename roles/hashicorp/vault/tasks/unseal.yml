@@ -58,4 +58,5 @@
       no_log: true
   when:
     - vault_is_sealed.stdout == "true"
+    - ansible_hostname in groups['vault_servers']
   tags: unseal

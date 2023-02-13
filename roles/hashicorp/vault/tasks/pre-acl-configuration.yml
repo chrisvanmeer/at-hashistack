@@ -6,6 +6,8 @@
     mode: "0644"
     owner: "{{ vault_data_directory_user }}"
     group: "{{ vault_data_directory_group }}"
+  when:
+    - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']
 
 - name: Ensure systemd service is present.
   ansible.builtin.template:
@@ -13,7 +15,11 @@
     dest: "{{ vault_systemd_service_file }}"
     mode: 0644
   notify: Restart Vault
+  when:
+    - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']
 
 - name: Ensure systemd is reloaded.
   ansible.builtin.systemd:
     daemon_reload: true
+  when:
+    - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']

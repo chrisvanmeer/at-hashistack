@@ -1,6 +1,7 @@
 ---
 - name: Vault
   hosts:
+    - management
     - vault_servers
     - vault_clients
   become: true

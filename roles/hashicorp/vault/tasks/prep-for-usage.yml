@@ -15,6 +15,7 @@
     VAULT_SKIP_VERIFY: "true"
   changed_when: false
   register: vault_is_sealed
+  when: ansible_hostname in groups['vault_servers']
 
 - name: Retrieve Initial Root Token from local file.
   ansible.builtin.shell: "awk '/Initial Root Token/ {print $4}' {{ vault_bootstrap_init_local_path }}"
@@ -174,4 +175,5 @@
         validate_certs: false
       register: vault_revoke_response
   delegate_to: "{{ groups['vault_servers'] | first }}"
+  when: ansible_hostname in groups['vault_servers']
   run_once: true
