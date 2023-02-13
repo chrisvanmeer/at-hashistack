@@ -14,16 +14,3 @@
     mode: "0755"
     owner: "{{ consul_log_directory_owner }}"
     group: "{{ consul_data_directory_group }}"
-
-- name: Install autocompletion.
-  ansible.builtin.command: "{{ item[0] }} -autocomplete-install"
-  become: "{{ item[1] }}"
-  with_nested:
-    - "{{ hashicorp_product_selection }}"
-    - [ 'true', 'false' ]
-  register: autoinstall_cmd
-  changed_when:
-    - not 'already installed' in autoinstall_cmd.stderr
-  failed_when:
-    - autoinstall_cmd.rc != 0
-    - not 'already installed' in autoinstall_cmd.stderr
