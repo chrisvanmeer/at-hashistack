@@ -1,13 +1,5 @@
 ---
 
-- name: Check if system is already bootstrapped.
-  ansible.builtin.stat:
-    path: "{{ nomad_bootstrapped_true_file }}"
-  register: nomad_bootstrapped
-  when: ansible_hostname in groups['nomad_servers']
-  delegate_to: "{{ groups['nomad_servers'] | first }}"
-  run_once: true
-
 - name: Find all vault-nomad-server- files.
   ansible.builtin.find:
     paths: "{{ role_path }}/files/"
@@ -27,7 +19,6 @@
     label: "{{ item.path | basename }}"
   when:
     - ansible_hostname in groups['nomad_servers']
-    - not nomad_bootstrapped.stat.exists
   delegate_to: "{{ groups['nomad_servers'] | first }}"
   run_once: true
 
@@ -73,7 +64,6 @@
       register: nomad_server_token_raw
   when:
     - ansible_hostname in groups['nomad_servers']
-    - not nomad_bootstrapped.stat.exists
   delegate_to: "{{ groups['nomad_servers'] | first }}"
   run_once: true
 
