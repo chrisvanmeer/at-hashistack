@@ -5,11 +5,6 @@ hashicorp_product_selection:
   - nomad
   - vault
 
-pip_install_packages:
-  - name: docker
-  - name: hvac
-  - name: python-nomad
-
 basic_packages:
   - atop
   - curl

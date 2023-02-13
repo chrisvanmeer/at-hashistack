@@ -62,8 +62,6 @@ vault_ssl_server_subject_alt_names:
   - "DNS:*.vault.service.{{ datacenter_name }}.consul"
   - "IP:127.0.0.1"
 
-vault_ssl_local_dir: "/usr/local/share/ca-certificates"
-
 vault_service_policy_file_name: "consul-vault-service-policy.hcl"
 vault_service_policy_file_local: "files/{{ vault_service_policy_file_name }}"
 vault_service_policy_file_remote: "{{ vault_data_directory }}/{{ vault_service_policy_file_name }}"

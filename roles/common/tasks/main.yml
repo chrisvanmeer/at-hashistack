@@ -19,6 +19,12 @@
 - name: Ensure pip is installed.
   ansible.builtin.include_role:
     name: geerlingguy.pip
+    vars:
+      pip_install_packages:
+        - name: cryptography
+        - name: docker
+        - name: hvac
+        - name: python-nomad
 
 - name: Ensure HashiCorp binaries.
   ansible.builtin.include_role:
