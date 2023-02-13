@@ -50,9 +50,6 @@ output() {
 
   if [ "$RESULT" == "SUCCEEDED" ]; then
     BEGC=$PASS
-  elif [ "$RESULT" == "FAILED" ]; then
-    BEGC=$FAIL
-    ((ERROR=ERROR+1))
   elif [ "$RESULT" == "TRUE" ]; then
     BEGC=$PASS
   elif [ "$RESULT" == "DONE" ]; then
@@ -63,6 +60,11 @@ output() {
     BEGC=$PASS
   elif [ "$RESULT" == "HEALTHY" ]; then
     BEGC=$PASS
+  elif [ "$RESULT" == "ISO-3200" ]; then
+    BEGC=$PASS
+  elif [ "$RESULT" == "FAILED" ]; then
+    BEGC=$FAIL
+    ((ERROR=ERROR+1))
   elif [ "$RESULT" == "FALSE" ]; then
     BEGC=$FAIL
     ((ERROR=ERROR+1))
@@ -72,8 +74,6 @@ output() {
   elif [ "$RESULT" == "SKIPPED" ]; then
     BEGC=$NEUT
     ((ERROR=ERROR+1))
-  elif [ "$RESULT" == "ISO-3200" ]; then
-    BEGC=$PASS
   elif [ "$RESULT" == "ISO-100" ]; then
     BEGC=$FAIL
   else
