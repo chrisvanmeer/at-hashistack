@@ -1,11 +1,19 @@
 ---
-- name: Retrieve Initial Root Token from local file.
-  ansible.builtin.shell: "awk '/Initial Root Token/ {print $4}' {{ vault_bootstrap_init_local_path }}"
-  register: vault_initial_root_token
-  changed_when: false
-  delegate_to: localhost
-  become: false
-  run_once: true
+- name: Retrieve client token.
+  ansible.builtin.uri:
+    url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+    method: POST
+    body_format: json
+    body: '{ "password": "{{ admin_password }}" }'
+    status_code:
+      - 200
+      - 204
+    validate_certs: false
+  register: vault_admin_login_response
+
+- name: Set fact of client token.
+  ansible.builtin.set_fact:
+    admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
 
 - name: Ensure logrotate file for Vault is present.
   ansible.builtin.template:
@@ -20,7 +28,7 @@
     VAULT_ADDR: "{{ vault_address }}"
     VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
     VAULT_SKIP_VERIFY: "true"
-    VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+    VAULT_TOKEN: "{{ admin_token }}"
   changed_when: false
   when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
@@ -33,7 +41,7 @@
     VAULT_ADDR: "{{ vault_address }}"
     VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
     VAULT_SKIP_VERIFY: "true"
-    VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
+    VAULT_TOKEN: "{{ admin_token }}"
   changed_when: false
   when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"

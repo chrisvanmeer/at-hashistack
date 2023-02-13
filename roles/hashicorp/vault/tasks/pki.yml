@@ -152,22 +152,22 @@
     - ansible_hostname in groups['vault_servers']
     - ansible_hostname != groups['vault_servers'] | first
 
-- name: Ensure the CA certificate is copied to the local certs directory [Debian].
+- name: Ensure the CA certificate is copied to the local certs directory - Debian.
   ansible.builtin.copy:
     dest: "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
     content: "{{ ca_certificate_slurp.content | b64decode }}"
   when: ansible_os_family == 'Debian'
 
-- name: Ensure the CA certificate is copied to the local certs directory [RedHat].
+- name: Ensure the CA certificate is copied to the local certs directory - RedHat.
   ansible.builtin.copy:
     dest: "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
     content: "{{ ca_certificate_slurp.content | b64decode }}"
   when: ansible_os_family == 'RedHat'
 
-- name: Ensure certificate index is updated [Debian].
+- name: Ensure certificate index is updated - Debian.
   ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
   when: ansible_os_family == 'Debian'
 
-- name: Ensure certificate index is updated [RedHat].
+- name: Ensure certificate index is updated - RedHat.
   ansible.builtin.command: "/usr/bin/update-ca-trust extract"
   when: ansible_os_family == 'RedHat'
