@@ -9,9 +9,11 @@
       become: false
       delegate_to: localhost
       register: consul_acl_bootstrap_output
+      failed_when: false
     - name: GENERAL - Set the Secret ID as a fact.
       ansible.builtin.set_fact:
         consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
+      failed_when: false
   run_once: true
 
 
