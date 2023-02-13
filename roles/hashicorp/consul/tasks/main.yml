@@ -13,7 +13,7 @@
 
 - name: Service Mesh.
   ansible.builtin.include_tasks: service-mesh.yml
-  when: ansible_hostname in groups['consul_clients']
+  when: ansible_hostname in groups['docker_clients']
 
 - name: Backup.
   ansible.builtin.include_tasks: backup.yml
