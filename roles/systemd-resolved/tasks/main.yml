@@ -29,6 +29,7 @@
     src: "/etc/resolv.conf"
     dest: "/etc/resolv.conf.bak"
     mode: 0644
+    state: hard
 
 - name: Ensure removal of old resolv file
   ansible.builtin.file:
