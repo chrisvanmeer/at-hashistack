@@ -9,7 +9,7 @@ NOMAD_PORT="4646"
 BOOT_LOC=$(grep bootstrap_location roles/common/vars/main.yml | cut -d/ -f4 | tr -d '"')
 
 # Token directory
-TOKENS_DIR="$HOME/hashi-tokens"
+TOKENS_DIR="$HOME/$BOOT_LOC"
 
 # Error counter
 ERROR=0
