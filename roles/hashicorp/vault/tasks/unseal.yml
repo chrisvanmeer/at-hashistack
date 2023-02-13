@@ -55,6 +55,7 @@
         - "{{ vault_unseal_key_1 }}"
         - "{{ vault_unseal_key_2 }}"
         - "{{ vault_unseal_key_3 }}"
+      no_log: true
   when:
     - vault_is_sealed.stdout == "true"
   tags: unseal
