@@ -18,7 +18,7 @@ bind_addr = "0.0.0.0"
 client_addr = "0.0.0.0"
 ui = true
 {% elif ansible_hostname in groups['consul_clients'] %}
-bind_addr = "{{ ansible_host }}"
+bind_addr = "{{ hostvars[ansible_host].ansible_default_ipv4.address }}"
 check_update_interval = "0s"
 {% endif %}
 
