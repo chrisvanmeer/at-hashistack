@@ -1,10 +1,4 @@
 ---
-# We don't want to overwrite an existing config since this would be then reverted back to a non-ACL config file which would crash the whole system.
-- name: Check for existence of the Consul config file.
-  ansible.builtin.stat:
-    path: "{{ consul_etc_directory }}/consul.hcl"
-  register: consul_config_present
-
 - name: Consul - Configuration.
   block:
 
@@ -47,9 +41,6 @@
     - name: Output the results of the consul members command.
       ansible.builtin.debug:
         var: consul_members_output.stdout_lines
-
-  when:
-    - not consul_config_present.stat.exists
 
 # CONSUL ACL BOOTSTRAP
 - name: Bootstrap - Check if system is already bootstrapped.
