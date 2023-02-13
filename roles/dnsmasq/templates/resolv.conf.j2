@@ -1,7 +1,7 @@
 {% if ansible_hostname in groups['nomad_clients'] %}
 nameserver 127.0.0.1
 {% else %}
-nameserver {{ ansible_host }}
+nameserver {{ hostvars[ansible_host].ansible_default_ipv4.address }}
 {% endif %}
 {% for server in dnsmasq_default_domain_servers %}
 nameserver {{ server }}
