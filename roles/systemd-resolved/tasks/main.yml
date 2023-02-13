@@ -30,10 +30,11 @@
     dest: "/etc/resolv.conf.bak"
     mode: 0644
     state: hard
+  failed_when: false
 
 - name: Ensure removal of old resolv file
   ansible.builtin.file:
-    src: "/etc/resolv.conf"
+    path: "/etc/resolv.conf"
     state: absent
 
 - name: Ensure link to stub resolver
