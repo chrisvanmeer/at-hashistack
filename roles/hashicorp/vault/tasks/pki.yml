@@ -44,9 +44,8 @@
       register: ca_certificate
 
   when:
-    - ansible_hostname in groups['vault_servers']
+    - ansible_hostname == groups['vault_servers'] | first
     - not ca_already_exists.stat.exists
-  delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
 ## Server certificate
@@ -102,9 +101,8 @@
       when: certificate is changed
 
   when:
-    - ansible_hostname in groups['vault_servers']
+    - ansible_hostname == groups['vault_servers'] | first
     - not ca_already_exists.stat.exists
-  delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
 ## Distribute the CA certificate to the rest of the environment
@@ -123,8 +121,7 @@
         src: "{{ vault_ssl_key_dest }}"
       register: server_key_slurp
   when:
-    - ansible_hostname in groups['vault_servers']
-  delegate_to: "{{ groups['vault_servers'] | first }}"
+    - ansible_hostname == groups['vault_servers'] | first
   run_once: true
 
 - name: Place Content.
