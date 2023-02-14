@@ -46,7 +46,6 @@
   when:
     - ansible_hostname == groups['vault_servers'] | first
     - not ca_already_exists.stat.exists
-  run_once: true
 
 ## Server certificate
 - name: Create PKI infrastructure on first server.
@@ -103,7 +102,6 @@
   when:
     - ansible_hostname == groups['vault_servers'] | first
     - not ca_already_exists.stat.exists
-  run_once: true
 
 ## Distribute the CA certificate to the rest of the environment
 - name: Retrieve Content.
@@ -122,7 +120,6 @@
       register: server_key_slurp
   when:
     - ansible_hostname == groups['vault_servers'] | first
-  run_once: true
 
 - name: Place Content.
   block:
