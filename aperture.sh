@@ -428,7 +428,6 @@ function nomad_checks() {
   ### Consul service record
   if [ $SSUC -eq 1 ]; then
     NOMAD_JOB_CONSUL_RECORD=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN)
-    echo $NOMAD_JOB_CONSUL_RECORD
     if [ "$NOMAD_JOB_CONSUL_RECORD" == "" ] || [ "$NOMAD_JOB_CONSUL_RECORD" == ";;" ]; then
       STAT="FAILED"
       SUC=0
