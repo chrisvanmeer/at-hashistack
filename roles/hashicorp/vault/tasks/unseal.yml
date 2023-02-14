@@ -12,7 +12,6 @@
 - name: Unseal
   when:
     - vault_is_sealed.stdout == "true"
-    - ansible_hostname in groups['vault_servers']
   tags: unseal
   block:
     - name: Unseal - Retrieve local token file.
