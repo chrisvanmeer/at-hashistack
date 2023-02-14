@@ -123,6 +123,8 @@
         src: "{{ vault_ssl_key_dest }}"
       register: server_key_slurp
   delegate_to: "{{ groups['vault_servers'] | first }}"
+  when:
+    - ansible_hostname in groups['vault_servers']
   run_once: true
 
 - name: Place Content.
