@@ -101,10 +101,10 @@
         mode: "0644"
       when: certificate is changed
 
-  delegate_to: "{{ groups['vault_servers'] | first }}"
   when:
     - ansible_hostname in groups['vault_servers']
     - not ca_already_exists.stat.exists
+  delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
 ## Distribute the CA certificate to the rest of the environment
@@ -122,9 +122,9 @@
       ansible.builtin.slurp:
         src: "{{ vault_ssl_key_dest }}"
       register: server_key_slurp
-  delegate_to: "{{ groups['vault_servers'] | first }}"
   when:
     - ansible_hostname in groups['vault_servers']
+  delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
 - name: Place Content.
