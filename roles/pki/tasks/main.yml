@@ -43,7 +43,7 @@
 
   when:
     - not ca_already_exists.stat.exists
-  delegate_to: "{{ groups['servers'] | first }}"
+  delegate_to: "{{ groups['vault_servers'] | first }}"
 
 ## Server certificate
 - name: Create PKI infrastructure on first server.
@@ -99,7 +99,7 @@
 
   when:
     - not ca_already_exists.stat.exists
-  delegate_to: "{{ groups['servers'] | first }}"
+  delegate_to: "{{ groups['vault_servers'] | first }}"
 
 ## Distribute the CA certificate to the rest of the environment
 - name: Retrieve Content.
