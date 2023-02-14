@@ -121,26 +121,38 @@
   when:
     - ansible_hostname == groups['vault_servers'] | first
 
+- name: Set facts.
+  block:
+    - name: Set fact of CA cert contents
+      ansible.builtin.set_fact:
+        contents_ca_cert: "{{ ca_certificate_slurp.content | b64decode }}"
+    - name: Set fact of server cert contents
+      ansible.builtin.set_fact:
+        contents_server_cert: "{{ server_certificate_slurp.content | b64decode }}"
+    - name: Set fact of server key contents
+      ansible.builtin.set_fact:
+        contents_server_key: "{{ server_key_slurp.content | b64decode }}"
+
 - name: Place Content.
   block:
     - name: Place CA certificate in default location.
       ansible.builtin.copy:
         dest: "{{ vault_ssl_ca_dest }}"
-        content: "{{ ca_certificate_slurp.content | b64decode }}"
+        content: "{{ contents_ca_cert }}"
         owner: "root"
         group: "root"
         mode: "0644"
     - name: Place certificate in default location.
       ansible.builtin.copy:
         dest: "{{ vault_ssl_cert_dest }}"
-        content: "{{ server_certificate_slurp.content | b64decode }}"
+        content: "{{ contents_server_cert }}"
         owner: "root"
         group: "root"
         mode: "0644"
     - name: Place key in default location.
       ansible.builtin.copy:
         dest: "{{ vault_ssl_key_dest }}"
-        content: "{{ server_key_slurp.content | b64decode }}"
+        content: "{{ contents_server_key }}"
         owner: "root"
         group: "vault"
         mode: "0640"
