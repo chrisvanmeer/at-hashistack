@@ -3,8 +3,6 @@
   hosts:
     - vault_servers
     - vault_clients
-    - nomad_servers
-    - nomad_clients
   become: true
 
   vars_files:
