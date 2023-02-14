@@ -241,7 +241,7 @@ function consul_checks() {
     else
       STAT="FAILED"
     fi
-    output $i "Checking membership for Consul client $C_CLIENT (CLI consul members)" $STAT
+    output $i "Checking registration for Consul client $C_CLIENT (CLI consul members)" $STAT
     ((i=i+1))
   done
 
@@ -312,42 +312,59 @@ function vault_checks() {
 
   ### Vault login with atcomputing user
   echo ""
-  VAULT_TOKEN=$(curl -k -s --request POST --data "{\"password\": \"$VAULT_PASSWORD\"}" https://${VAULT_SERVERS[0]}:8200/v1/auth/userpass/login/$VAULT_USER | jq -r .auth.client_token)
-  if [ "$VAULT_TOKEN" != "" ]; then
+  VAULT_LOGIN=$(curl -f -k -s --request POST --data "{\"password\": \"$VAULT_PASSWORD\"}" https://${VAULT_SERVERS[0]}:8200/v1/auth/userpass/login/$VAULT_USER) # | jq -r .auth.client_token)
+  VAULT_LOGIN_STAT=$(echo $?)
+  if [ $VAULT_LOGIN_STAT -eq 0 ]; then
+    VAULT_TOKEN=$(echo $VAULT_LOGIN | jq -r .auth.client_token)
     STAT="SUCCEEDED"
+    VSUC=1
   else
+    VAULT_TOKEN="INVALID"
     STAT="FAILED"
+    VSUC=0
   fi
   output $i "Log in with $VAULT_USER user (API POST /auth/userpass/login/$VAULT_USER)" $STAT
   ((i=i+1))
 
   ### Vault create KV/2 engine
-  VAULT_KV=$(curl -k -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data "{\"type\": \"kv-v2\"}" https://${VAULT_SERVERS[0]}:8200/v1/sys/mounts/shutter 2>/dev/null ; echo $?)
-  if [ $VAULT_KV -eq 0 ]; then
-    STAT="SUCCEEDED"
+  if [ $VSUC -eq 1 ]; then
+    VAULT_KV=$(curl -f -k -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data "{\"type\": \"kv-v2\"}" https://${VAULT_SERVERS[0]}:8200/v1/sys/mounts/shutter 2>/dev/null ; echo $?)
+    if [ $VAULT_KV -eq 0 ]; then
+      STAT="SUCCEEDED"
+    else
+      STAT="FAILED"
+    fi
   else
-    STAT="FAILED"
+    STAT="SKIPPED"
   fi
   output $i "Mounting kv-v2 secrets engine 'shutter' (API POST /sys/mounts/shutter)" $STAT
   ((i=i+1))
 
   ### Vault create secret
-  VAULT_CREATE_SECRET=$(curl -k -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data "{ \"options\": { \"cas\": 0 }, \"data\": { \"shutterspeed\": \"10s\" } }" https://${VAULT_SERVERS[0]}:8200/v1/shutter/data/speed 2>/dev/null)
-  VAULT_CREATE_SECRET_STATUS=$(echo $?)
-  if [ $VAULT_CREATE_SECRET_STATUS -eq 0 ]; then
-    STAT="SUCCEEDED"
+  if [ $VSUC -eq 1 ]; then
+    VAULT_CREATE_SECRET=$(curl -f -k -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data "{ \"options\": { \"cas\": 0 }, \"data\": { \"shutterspeed\": \"10s\" } }" https://${VAULT_SERVERS[0]}:8200/v1/shutter/data/speed 2>/dev/null)
+    VAULT_CREATE_SECRET_STATUS=$(echo $?)
+    if [ $VAULT_CREATE_SECRET_STATUS -eq 0 ]; then
+      STAT="SUCCEEDED"
+    else
+      STAT="FAILED"
+    fi
   else
-    STAT="FAILED"
+    STAT="SKIPPED"
   fi
   output $i "Creating secret 'speed' in 'shutter' kv-v2 secrets engine (API POST /shutter/data/speed)" $STAT
   ((i=i+1))
 
   ### Vault read secret
-  VAULT_READ_SECRET=$(curl -k -s --header "X-Vault-Token: $VAULT_TOKEN" https://${VAULT_SERVERS[0]}:8200/v1/shutter/data/speed 2>/dev/null | jq -jc .data.data | tr -d '{}')
-  if [ "$VAULT_READ_SECRET" != ""  ]; then
-    STAT=$VAULT_READ_SECRET
+  if [ $VSUC -eq 1 ]; then
+    VAULT_READ_SECRET=$(curl -f -k -s --header "X-Vault-Token: $VAULT_TOKEN" https://${VAULT_SERVERS[0]}:8200/v1/shutter/data/speed 2>/dev/null | jq -jc .data.data | tr -d '{}')
+    if [ "$VAULT_READ_SECRET" != ""  ]; then
+      STAT=$VAULT_READ_SECRET
+    else
+      STAT="FAILED"
+    fi
   else
-    STAT="FAILED"
+    STAT="SKIPPED"
   fi
   output $i "Reading secret 'speed' from 'shutter' kv-v2 secrets engine (API GET /shutter/data/speed)" $STAT
   ((i=i+1))
