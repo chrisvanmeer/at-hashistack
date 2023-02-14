@@ -35,6 +35,12 @@
   ansible.builtin.set_fact:
     active_vault_address: "active.vault.service.{{ consul_domain }}"
 
+- name: Set fact of admin password.
+  ansible.builtin.set_fact:
+    admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: Enable integration.
   block:
     - name: Retrieve client token.
