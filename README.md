@@ -14,3 +14,9 @@ A work in progress
 7. `ansible-playbook playbooks/04_vault.yml --tags unseal`
 8. `ansible-playbook playbooks/05_nomad`
 9. Run the aperture script to make sure everything is up and running: `./aperture.sh`
+
+## URL's
+
+- <http://consul.service.inthepicture.photo:8500>
+- <http://active.vault.service.inthepicture.photo:8200>
+- <http://nomad.service.inthepicture.photo:4646>
