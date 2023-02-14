@@ -1,0 +1,10 @@
+---
+- name: PKI
+  hosts: all
+  become: true
+
+  vars_files:
+    - ../roles/hashicorp/vault/vars/main.yml
+
+  roles:
+    - name: pki
