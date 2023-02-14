@@ -33,7 +33,7 @@
 
 - name: Set fact of active Vault.
   ansible.builtin.set_fact:
-    active_vault_address: "active.vault.service.{{ consul_domain }}"
+    active_vault_address: "https://active.vault.service.{{ consul_domain }}:8200"
 
 - name: Set fact of admin password.
   ansible.builtin.set_fact:
