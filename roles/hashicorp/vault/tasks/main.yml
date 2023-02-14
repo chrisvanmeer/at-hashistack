@@ -29,3 +29,8 @@
 - name: Logging.
   ansible.builtin.include_tasks: logging.yml
   when: ansible_hostname in groups['vault_servers']
+
+- name: Unattended Upgrades
+  include_tasks: unattended-upgrades.yml
+  when:
+    - ansible_os_family == 'Debian'

@@ -1,0 +1,8 @@
+---
+- name: Ensure Vault is excluded from the unattended upgrades.
+  lineinfile:
+    path: "/usr/share/unattended-upgrades/50unattended-upgrades"
+    state: present
+    line: '    "vault";'
+    insertafter: 'Unattended-Upgrade::Package-Blacklist \{\n'
+    backup: true

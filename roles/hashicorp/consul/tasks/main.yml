@@ -19,3 +19,8 @@
   ansible.builtin.include_tasks: backup.yml
   when: ansible_hostname in groups['consul_servers']
   tags: backup
+
+- name: Unattended Upgrades
+  include_tasks: unattended-upgrades.yml
+  when:
+    - ansible_os_family == 'Debian'
