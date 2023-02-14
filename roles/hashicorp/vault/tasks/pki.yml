@@ -44,8 +44,8 @@
       register: ca_certificate
 
   when:
-    - not ca_already_exists.stat.exists
     - ansible_hostname in groups['vault_servers']
+    - not ca_already_exists.stat.exists
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
