@@ -353,6 +353,26 @@ function nomad_checks() {
   fi
   output $i "Starting Focus test job (API /jobs)" $STAT
   if [ $NOMAD_TEST_JOB -eq 0 ]; then
+    output "" "   Waiting" "20"
+    sleep 0.7
+    output "" "   Waiting" "19"
+    sleep 0.7
+    output "" "   Waiting" "18"
+    sleep 0.7
+    output "" "   Waiting" "17"
+    sleep 0.7
+    output "" "   Waiting" "16"
+    sleep 0.7
+    output "" "   Waiting" "15"
+    sleep 0.7
+    output "" "   Waiting" "14"
+    sleep 0.7
+    output "" "   Waiting" "13"
+    sleep 0.7
+    output "" "   Waiting" "12"
+    sleep 0.7
+    output "" "   Waiting" "11"
+    sleep 0.7
     output "" "   Waiting" "10"
     sleep 0.7
     output "" "   Waiting" "9"
@@ -407,7 +427,8 @@ function nomad_checks() {
 
   ### Consul service record
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL_RECORD=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN @${CONSUL_SERVERS[0]})
+    NOMAD_JOB_CONSUL_RECORD=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN)
+    echo $NOMAD_JOB_CONSUL_RECORD
     if [ "$NOMAD_JOB_CONSUL_RECORD" == "" ] || [ "$NOMAD_JOB_CONSUL_RECORD" == ";;" ]; then
       STAT="FAILED"
       SUC=0
@@ -424,7 +445,7 @@ function nomad_checks() {
 
   ### Consul service port
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL_PORT=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN SRV @${CONSUL_SERVERS[0]} | awk '{print $3}')
+    NOMAD_JOB_CONSUL_PORT=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN SRV | awk '{print $3}')
     if [ "$NOMAD_JOB_CONSUL_PORT" == "" ]; then
       STAT="FAILED"
       PORT=""
