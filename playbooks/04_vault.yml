@@ -6,6 +6,9 @@
     - vault_clients
   become: true
 
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+
   # Uncomment these lines if you want to unseal with other shards than present in the vault.master.keys file.
   # vars:
   #   vault_unseal_key_1: "xxxxxxxxxxx"
