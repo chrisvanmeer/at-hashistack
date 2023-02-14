@@ -31,22 +31,33 @@
     vault_ca: "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
   when: ansible_os_family == 'RedHat'
 
+- name: Set fact of active Vault.
+  ansible.builtin.set_fact:
+    active_vault_address: "active.vault.service.{{ consul_domain }}"
+
 - name: Enable integration.
   block:
-    - name: Retrieve Initial Root Token from local file.
-      ansible.builtin.shell: "awk '/Initial Root Token/ {print $4}' {{ vault_bootstrap_init_local_path }}"
-      register: vault_initial_root_token
-      changed_when: false
-      delegate_to: localhost
-      become: false
-      run_once: true
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
     - name: Ensure nomad-server-policy is present.
       ansible.builtin.command: "{{ vault_binary }} policy write nomad-server vault-nomad-server-policy.hcl"
       args:
         chdir: "{{ nomad_data_directory }}"
       environment:
-        VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
-        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_TOKEN: "{{ admin_token }}"
+        VAULT_ADDR: "{{ active_vault_address }}"
         VAULT_CACERT: "{{ vault_ca }}"
         VAULT_SKIP_VERIFY: "true"
       changed_when: false
@@ -55,8 +66,8 @@
       args:
         chdir: "{{ nomad_data_directory }}"
       environment:
-        VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
-        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_TOKEN: "{{ admin_token }}"
+        VAULT_ADDR: "{{ active_vault_address }}"
         VAULT_CACERT: "{{ vault_ca }}"
         VAULT_SKIP_VERIFY: "true"
       changed_when: false
@@ -65,8 +76,8 @@
       args:
         chdir: "{{ nomad_data_directory }}"
       environment:
-        VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
-        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_TOKEN: "{{ admin_token }}"
+        VAULT_ADDR: "{{ active_vault_address }}"
         VAULT_CACERT: "{{ vault_ca }}"
         VAULT_SKIP_VERIFY: "true"
       changed_when: false
