@@ -28,6 +28,7 @@
   tasks:
     - name: Ensure Vault address
       ansible.builtin.lineinfile:
-        path: "/home/{{ ansible_env.HOME }}/.bashrc"
+        path: "{{ ansible_env.HOME }}/.bashrc"
         search_string: "VAULT_ADDR"
         line: "export VAULT_ADDR=https://active.vault.service.{{ consul_domain }}:8200"
+      tags: bashrc
