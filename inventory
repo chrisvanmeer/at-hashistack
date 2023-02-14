@@ -49,7 +49,6 @@ nomad3
 docker1
 docker2
 docker3
-desktop
 
 [nomad_servers]
 nomad1
