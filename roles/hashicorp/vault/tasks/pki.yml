@@ -132,8 +132,7 @@
     - name: Set fact of server key contents
       ansible.builtin.set_fact:
         contents_server_key: "{{ server_key_slurp.content | b64decode }}"
-  when:
-    - ansible_hostname == groups['vault_servers'] | first
+  delegate_to: "{{ groups['vault_servers'] | first }}"
 
 - name: Place Content.
   block:
