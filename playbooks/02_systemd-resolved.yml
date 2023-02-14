@@ -6,5 +6,8 @@
     - consul_clients
   become: true
 
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+
   roles:
     - name: systemd-resolved

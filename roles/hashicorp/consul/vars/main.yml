@@ -2,6 +2,7 @@
 bootstrap_location: "/home/{{ ansible_env.SUDO_USER }}/bootstrap-tokens"
 datacenter_name: "velp"
 
+consul_domain: "inthepicture.photo"
 consul_binary: "/usr/bin/consul"
 consul_etc_directory: "/etc/consul.d"
 consul_data_directory: "/opt/consul"
