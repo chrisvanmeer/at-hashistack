@@ -45,7 +45,7 @@
   block:
     - name: Retrieve client token.
       ansible.builtin.uri:
-        url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        url: "{{ active_vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
         method: POST
         body_format: json
         body: '{ "password": "{{ admin_password }}" }'
