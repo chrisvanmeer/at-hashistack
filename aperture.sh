@@ -191,7 +191,7 @@ fi
 output $i "Reading Consul token from token directory" "$STAT"
 ((i=i+1))
 
-VAULT_USERNAME="atcomputing"
+VAULT_USER="atcomputing"
 VAULT_PASSWORD="$(cat $TOKENS_DIR/atcomputing.vault.password 2>/dev/null)"
 VAULT_USERPASS_STAT=$(echo $?)
 if [ $VAULT_USERPASS_STAT -eq 0 ]; then
@@ -248,17 +248,17 @@ function consul_checks() {
   ### Vault services
   echo ""
   VAULT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/vault | jq -r ".[] | .Node" | uniq | wc -l)
-  output $i "Retrieving number of Vault services (API /health/checks/vault)" $VAULT_SERVICES
+  output $i "Retrieving number of Vault services (API GET /health/checks/vault)" $VAULT_SERVICES
   ((i=i+1))
   
   ### Nomad server services
   NOMAD_SERVER_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad | jq -r ".[] | .Node" | uniq | wc -l)
-  output $i "Retrieving number of Nomad Server services (API /health/checks/nomad)" $NOMAD_SERVER_SERVICES
+  output $i "Retrieving number of Nomad Server services (API GET /health/checks/nomad)" $NOMAD_SERVER_SERVICES
   ((i=i+1))
   
   ### Nomad client services
   NOMAD_CLIENT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad-client | jq -r ".[] | .Node" | uniq | wc -l)
-  output $i "Retrieving number of Nomad Client services (API /health/checks/nomad-client)" $NOMAD_CLIENT_SERVICES
+  output $i "Retrieving number of Nomad Client services (API GET /health/checks/nomad-client)" $NOMAD_CLIENT_SERVICES
   ((i=i+1))
 
   echo ""
@@ -292,7 +292,7 @@ function vault_checks() {
     else
       STAT="FALSE"
     fi
-    output $i "Checking if Vault is initialized on $V (API /sys/health)" $STAT
+    output $i "Checking if Vault is initialized on $V (API GET /sys/health)" $STAT
     ((i=i+1))
   done
 
@@ -306,9 +306,51 @@ function vault_checks() {
     else
       STAT="FALSE"
     fi
-    output $i "Checking if Vault is unsealed on $V (API /sys/health)" $STAT
+    output $i "Checking if Vault is unsealed on $V (API GET /sys/health)" $STAT
     ((i=i+1))
   done
+
+  ### Vault login with atcomputing user
+  echo ""
+  VAULT_TOKEN=$(curl -k -s --request POST --data "{\"password\": \"$VAULT_PASSWORD\"}" https://${VAULT_SERVERS[0]}:8200/v1/auth/userpass/login/$VAULT_USER | jq -r .auth.client_token)
+  if [ "$VAULT_TOKEN" != "" ]; then
+    STAT="SUCCEEDED"
+  else
+    STAT="FAILED"
+  fi
+  output $i "Log in with $VAULT_USER user (API POST /auth/userpass/login/$VAULT_USER)" $STAT
+  ((i=i+1))
+
+  ### Vault create KV/2 engine
+  VAULT_KV=$(curl -k -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data "{\"type\": \"kv-v2\"}" https://${VAULT_SERVERS[0]}:8200/v1/sys/mounts/shutter 2>/dev/null ; echo $?)
+  if [ $VAULT_KV -eq 0 ]; then
+    STAT="SUCCEEDED"
+  else
+    STAT="FAILED"
+  fi
+  output $i "Mounting kv-v2 secrets engine 'shutter' (API POST /sys/mounts/shutter)" $STAT
+  ((i=i+1))
+
+  ### Vault create secret
+  VAULT_CREATE_SECRET=$(curl -k -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data "{ \"options\": { \"cas\": 0 }, \"data\": { \"shutterspeed\": \"10s\" } }" https://${VAULT_SERVERS[0]}:8200/v1/shutter/data/speed 2>/dev/null)
+  VAULT_CREATE_SECRET_STATUS=$(echo $?)
+  if [ $VAULT_CREATE_SECRET_STATUS -eq 0 ]; then
+    STAT="SUCCEEDED"
+  else
+    STAT="FAILED"
+  fi
+  output $i "Creating secret 'speed' in 'shutter' kv-v2 secrets engine (API POST /shutter/data/speed)" $STAT
+  ((i=i+1))
+
+  ### Vault read secret
+  VAULT_READ_SECRET=$(curl -k -s --header "X-Vault-Token: $VAULT_TOKEN" https://${VAULT_SERVERS[0]}:8200/v1/shutter/data/speed 2>/dev/null | jq -jc .data.data | tr -d '{}')
+  if [ "$VAULT_READ_SECRET" != ""  ]; then
+    STAT=$VAULT_READ_SECRET
+  else
+    STAT="FAILED"
+  fi
+  output $i "Reading secret 'speed' from 'shutter' kv-v2 secrets engine (API GET /shutter/data/speed)" $STAT
+  ((i=i+1))
 
   echo ""
 
@@ -335,12 +377,12 @@ function nomad_checks() {
   ### Nomad peers
   echo ""
   NOMAD_PEERS=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/status/peers 2>/dev/null | jq -r ".[]" 2>/dev/null | wc -l 2>/dev/null)
-  output $i "Retrieving number of Nomad peers (API /status/peers)" $NOMAD_PEERS
+  output $i "Retrieving number of Nomad peers (API GET /status/peers)" $NOMAD_PEERS
   ((i=i+1))
 
   ### Nomad nodes
   NOMAD_NODES=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/nodes 2>/dev/null | jq -r ".[] | .Name" 2>/dev/null | wc -l 2>/dev/null)
-  output $i "Retrieving number of Nomad nodes from (API /nodes)" $NOMAD_NODES
+  output $i "Retrieving number of Nomad nodes from (API GET /nodes)" $NOMAD_NODES
   ((i=i+1))
 
   ### Starting Nomad test job
@@ -351,7 +393,7 @@ function nomad_checks() {
   else
     STAT="FAILED"
   fi
-  output $i "Starting Focus test job (API /jobs)" $STAT
+  output $i "Starting Focus test job (API POST /jobs)" $STAT
   if [ $NOMAD_TEST_JOB -eq 0 ]; then
     output "" "   Waiting" "20"
     sleep 0.7
@@ -405,7 +447,7 @@ function nomad_checks() {
     STAT="FAILED"
     SSUC=0
   fi
-  output $i "Reading Focus job running status (API /job/$NOMAD_DEMO_SERVICE/summary)" $STAT
+  output $i "Reading Focus job running status (API GET /job/$NOMAD_DEMO_SERVICE/summary)" $STAT
   ((i=i+1))
 
   ### Consul service for Focus
@@ -422,7 +464,7 @@ function nomad_checks() {
     STAT="SKIPPED"
     SUC=0
   fi
-  output $i "Checking Consul for registered Focus service and passing health check (API /health/checks/$NOMAD_DEMO_SERVICE)" $STAT
+  output $i "Checking Consul for registered Focus service and passing health check (API GET /health/checks/$NOMAD_DEMO_SERVICE)" $STAT
   ((i=i+1))
 
   ### Consul service record
