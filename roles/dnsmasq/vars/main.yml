@@ -1,6 +1,0 @@
----
-dnsmasq_domain: "europe-west4-a.c.atc-cursist-omgeving.internal"
-dnsmasq_default_domain_servers:
-  - "169.254.169.254"
-dnsmasq_search_dns_suffix_1: "c.atc-cursist-omgeving.internal"
-dnsmasq_search_dns_suffix_2: "google.internal"
