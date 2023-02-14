@@ -23,9 +23,12 @@
   connection: local
   become: false
 
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+
   tasks:
     - name: Ensure Vault address
       ansible.builtin.lineinfile:
         path: "/home/{{ ansible_env.HOME }}/.bashrc"
         search_string: "VAULT_ADDR"
-        line: "export VAULT_ADDR=https://active.vault.service.consul:8200"
+        line: "export VAULT_ADDR=https://active.vault.service.{{ consul_domain }}:8200"
