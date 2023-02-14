@@ -6,6 +6,9 @@
   ansible.builtin.include_tasks: pre-acl-configuration.yml
   when: ansible_hostname in groups['vault_servers']
 
+- name: PKI.
+  ansible.builtin.include_tasks: pki.yml
+
 - name: ACL.
   ansible.builtin.include_tasks: acl.yml
   when: ansible_hostname in groups['vault_servers']
