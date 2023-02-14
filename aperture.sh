@@ -5,6 +5,9 @@ CONSUL_PORT="8500"
 VAULT_PORT="8200"
 NOMAD_PORT="4646"
 
+CONSUL_DOMAIN="inthepicture.photo"
+NOMAD_DEMO_SERVICE="focus"
+
 # Retrieve bootstrap location from roles var file
 BOOT_LOC=$(grep bootstrap_location roles/common/vars/main.yml | cut -d/ -f4 | tr -d '"')
 
@@ -374,7 +377,7 @@ function nomad_checks() {
   ((i=i+1))
 
   ### Reading Nomad test job
-  NOMAD_READ_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/job/focus/summary 2>/dev/null | jq -r .Summary.focus.Running 2>/dev/null)
+  NOMAD_READ_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/job/$NOMAD_DEMO_SERVICE/summary 2>/dev/null | jq -r .Summary.focus.Running 2>/dev/null)
   if [ "$NOMAD_READ_JOB" == "1" ]; then
     STAT="RUNNING"
     SSUC=1
@@ -382,12 +385,12 @@ function nomad_checks() {
     STAT="FAILED"
     SSUC=0
   fi
-  output $i "Reading Focus job running status (API /job/focus/summary)" $STAT
+  output $i "Reading Focus job running status (API /job/$NOMAD_DEMO_SERVICE/summary)" $STAT
   ((i=i+1))
 
   ### Consul service for Focus
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/focus 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
+    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
     if [ "$NOMAD_JOB_CONSUL" == "passing" ]; then
       STAT="HEALTHY"
       SUC=1
@@ -399,12 +402,12 @@ function nomad_checks() {
     STAT="SKIPPED"
     SUC=0
   fi
-  output $i "Checking Consul for registered Focus service and passing health check (API /health/checks/focus)" $STAT
+  output $i "Checking Consul for registered Focus service and passing health check (API /health/checks/$NOMAD_DEMO_SERVICE)" $STAT
   ((i=i+1))
 
   ### Consul service record
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL_RECORD=$(dig +time=1 +tries=1 +short focus.service.consul @${CONSUL_SERVERS[0]})
+    NOMAD_JOB_CONSUL_RECORD=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN @${CONSUL_SERVERS[0]})
     if [ "$NOMAD_JOB_CONSUL_RECORD" == "" ] || [ "$NOMAD_JOB_CONSUL_RECORD" == ";;" ]; then
       STAT="FAILED"
       SUC=0
@@ -416,12 +419,12 @@ function nomad_checks() {
     STAT="SKIPPED"
     SUC=0
   fi
-  output $i "Resolving Consul service DNS record (CLI dig +short focus.service.consul)" $STAT
+  output $i "Resolving Consul service DNS record (CLI dig +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN)" $STAT
   ((i=i+1))
 
   ### Consul service port
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL_PORT=$(dig +time=1 +tries=1 +short focus.service.consul SRV @${CONSUL_SERVERS[0]} | awk '{print $3}')
+    NOMAD_JOB_CONSUL_PORT=$(dig +time=1 +tries=1 +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN SRV @${CONSUL_SERVERS[0]} | awk '{print $3}')
     if [ "$NOMAD_JOB_CONSUL_PORT" == "" ]; then
       STAT="FAILED"
       PORT=""
@@ -433,7 +436,7 @@ function nomad_checks() {
     STAT="SKIPPED"
     PORT=""
   fi
-  output $i "Retrieving Consul service port (CLI dig +short focus.service.consul SRV)" $STAT
+  output $i "Retrieving Consul service port (CLI dig +short $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN SRV)" $STAT
   ((i=i+1))
 
   ### Focus output
@@ -442,7 +445,7 @@ function nomad_checks() {
   else
     FOCUS_OUTPUT="SKIPPED"
   fi
-  output $i "Retrieving job output (CLI curl focus.service.consul$PORT)" "$FOCUS_OUTPUT"
+  output $i "Retrieving job output (CLI curl $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN$PORT)" "$FOCUS_OUTPUT"
   ((i=i+1))
 
 } 
