@@ -1,5 +1,4 @@
 ---
-
 - name: Find all vault-nomad-server- files.
   ansible.builtin.find:
     paths: "{{ role_path }}/files/"
@@ -22,6 +21,16 @@
   delegate_to: "{{ groups['nomad_servers'] | first }}"
   run_once: true
 
+- name: Set fact of CA file - Debian.
+  ansible.builtin.set_fact:
+    vault_ca: "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
+  when: ansible_os_family == 'Debian'
+
+- name: Set fact of CA file - RedHat.
+  ansible.builtin.set_fact:
+    vault_ca: "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
+  when: ansible_os_family == 'RedHat'
+
 - name: Enable integration.
   block:
     - name: Retrieve Initial Root Token from local file.
@@ -38,7 +47,7 @@
       environment:
         VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
         VAULT_ADDR: "{{ vault_address }}"
-        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_CACERT: "{{ vault_ca }}"
         VAULT_SKIP_VERIFY: "true"
       changed_when: false
     - name: Ensure nomad-cluster-role is present.
@@ -48,7 +57,7 @@
       environment:
         VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
         VAULT_ADDR: "{{ vault_address }}"
-        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_CACERT: "{{ vault_ca }}"
         VAULT_SKIP_VERIFY: "true"
       changed_when: false
     - name: Ensure nomad token is generated.
@@ -58,7 +67,7 @@
       environment:
         VAULT_TOKEN: "{{ vault_initial_root_token.stdout }}"
         VAULT_ADDR: "{{ vault_address }}"
-        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_CACERT: "{{ vault_ca }}"
         VAULT_SKIP_VERIFY: "true"
       changed_when: false
       register: nomad_server_token_raw
