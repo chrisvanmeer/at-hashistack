@@ -101,7 +101,9 @@
   ansible.builtin.template:
     src: vault-nomad-server.hcl.j2
     dest: "{{ nomad_etc_directory }}/vault.hcl"
-    mode: 0644
+    mode: "0600"
+    owner: "{{ nomad_data_directory_owner }}"
+    group: "{{ nomad_data_directory_group }}"
   notify: Restart Nomad
 
 - name: Find all vault-nomad-server- files.
