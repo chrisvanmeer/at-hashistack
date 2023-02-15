@@ -12,7 +12,7 @@
   ansible.builtin.copy:
     src: "{{ item.path }}"
     dest: "{{ nomad_data_directory }}/{{ item.path | basename }}"
-    mode: 0644
+    mode: 0600
   with_items: "{{ vault_files.files }}"
   loop_control:
     label: "{{ item.path | basename }}"

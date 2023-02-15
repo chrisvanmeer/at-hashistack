@@ -15,7 +15,7 @@
   ansible.builtin.template:
     src: "nomad.hcl.j2"
     dest: "{{ nomad_etc_directory }}/nomad.hcl"
-    mode: "0644"
+    mode: "0600"
     owner: "{{ nomad_data_directory_owner }}"
     group: "{{ nomad_data_directory_group }}"
   notify: Restart Nomad
@@ -24,7 +24,7 @@
   ansible.builtin.template:
     src: "server.hcl.j2"
     dest: "{{ nomad_etc_directory }}/server.hcl"
-    mode: "0644"
+    mode: "0600"
     owner: "{{ nomad_data_directory_owner }}"
     group: "{{ nomad_data_directory_group }}"
   notify: Restart Nomad
@@ -34,7 +34,7 @@
   ansible.builtin.template:
     src: "client.hcl.j2"
     dest: "{{ nomad_etc_directory }}/client.hcl"
-    mode: "0644"
+    mode: "0600"
     owner: "{{ nomad_data_directory_owner }}"
     group: "{{ nomad_data_directory_group }}"
   notify: Restart Nomad

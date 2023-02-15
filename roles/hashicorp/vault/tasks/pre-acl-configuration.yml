@@ -3,7 +3,7 @@
   ansible.builtin.template:
     src: "vault.hcl.j2"
     dest: "{{ vault_etc_directory }}/vault.hcl"
-    mode: "0644"
+    mode: "0600"
     owner: "{{ vault_data_directory_user }}"
     group: "{{ vault_data_directory_group }}"
   when:
