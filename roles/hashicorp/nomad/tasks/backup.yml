@@ -14,6 +14,7 @@
     NOMAD_TOKEN: "{{ nomad_acl_bootstrap_output.stdout }}"
   changed_when: false
   register: nomad_acl_policy_read_snapshot
+  tags: backup
 
 - name: Snapshots ACL.
   block:
@@ -37,6 +38,18 @@
     - not nomad_acl_policy_read_snapshot.stdout == nomad_snapshot_token_name
   run_once: true
   tags: backup
+
+- name: Retrieve snapshot Secret ID from bootstrap output.
+  ansible.builtin.shell: "awk '/Secret ID/ {print $4}' {{ nomad_snapshot_token_local_path }}"
+  changed_when: false
+  become: false
+  delegate_to: localhost
+  register: nomad_snapshot_bootstrap_output
+  run_once: true
+
+- name: Set the snapshot Secret ID as a fact.
+  ansible.builtin.set_fact:
+    nomad_snapshot_secret_id: "{{ nomad_snapshot_bootstrap_output.stdout }}"
 
 - name: Snapshot setup.
   block:
