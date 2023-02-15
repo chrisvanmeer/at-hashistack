@@ -1,0 +1,124 @@
+---
+theme: hashitheme.json
+author: Chris van Meer
+date: AT Computing
+paging: Innovation Day - HashiCorp
+---
+
+# playbooks/01_common.yml
+
+## Steps
+
+- Creates a directory on `desktop` to store tokens (for demo only)
+- Installs basic packages
+  - `atop`, `curl`, `jq`, `tree`, `vim` 
+- Adds HashiCorp repository to package manager and installs
+  - `consul`, `vault`, `nomad`, `boundary`
+  - `-autocomplete-install`
+- Installs pip modules
+  - `cryptography`, `docker`, `hvac`, `python-nomad`
+
+---
+
+# playbooks/02_systemd_resolved.yml
+
+## Steps
+
+- Installs `systemd-resolved` package
+- Creates a custom configuration file for the domain `inthepicture.photo`
+- Points the `/etc/resolv.conf` file to the stub resolver
+
+---
+
+# playbooks/03_consul.yml
+
+## Steps
+
+- Creates `data` and `log` directories
+- Creates Consul CA (`consul ca tls create`)
+  - Creates server and client certificates (`consul tls cert create`)
+  - Distributes certificates
+- Creates an encryption key (`consul keygen`)
+- Creates config file and systemd unit
+- Bootraps Consul (`consul acl bootstrap`)
+  - Create Consul policies for agents and DNS
+- Installs CNI plugin on Docker hosts
+- Creates a scheduled backup job
+  - (`consul operator snapshot`)
+  - (`consul kv export`)
+- Disables Consul from unattended-upgrades (Debian only)
+
+---
+
+# playbooks/04_vault.yml
+
+## Steps
+
+- Creates `data` and `log` directories
+- Creates config file and systemd unit
+- Creates a PKI infrastructure (`openssl`)
+  - Distributes CA certificate to all machines (trust store)
+- Creates Consul policy for Vault
+  - Creates token and fills `vault.hcl` config file
+- Initializes and unseals Vault
+- Creates admin user
+  - Revokes initial root token
+- Creates custom logrotate for Vault log file
+- Enables auditing to both syslog and file
+- No backup script -> Consul backup
+- Disables Vault from unattended-upgrades (Debian only)
+
+---
+
+# playbooks/05_nomad.yml
+
+## Steps
+
+- Creates `data` and `log` directories
+- Creates config file and systemd unit
+- Creates Consul policies for Nomad
+  - Creates token and fills `nomad.hcl` config file
+- Bootraps Nomad (`nomad acl bootstrap`)
+  - Creates "ops" token
+- Writes policy to Vault for Nomad servers
+  - Creates token and fills `vault.hcl` config file (in `nomad.d`)
+- Creates a scheduled backup job
+  - (`nomad operator snapshot`)
+- Disables Nomad from unattended-upgrades (Debian only)
+
+---
+
+# ./aperture.sh
+
+## Steps
+
+### Generic
+
+- Reads Stack servers and clients from `ansible-inventory`
+- Reads credentials from local stored tokens
+
+### Consul
+
+- Port test on tcp/8500 (`netcat`)
+- Check registration for Consul clients (`consul members`)
+- Checks the number of Vault and Nomad services registered (`curl`)
+
+---
+
+# ./aperture.sh
+
+## Steps (continued)
+
+### Vault
+
+- Port test on tcp/8200 (`netcat`)
+- Checks for initialized and unsealed servers
+- Creates a kv-v2 secrets engine and populates a secret (`curl`)
+  - Reads the secret from Vault (`curl`)
+
+### Nomad
+
+- Port test on tcp/4646 (`netcat`)
+- Checks number of Nomad servers and clients (`curl`)
+- Starts a test job and retrieves the output (`curl`)
+
