@@ -98,4 +98,4 @@
     regexp: '  # token   = "<VAULT_SERVICE_TOKEN_WILL_BE_FILLED_LATER>"'
     line: '  token   = "{{ vault_acl_bootstrap_secret_id }}"'
   when:
-   - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']
+    - ansible_hostname in groups['vault_servers'] or ansible_hostname in groups['vault_clients']
