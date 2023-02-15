@@ -5,24 +5,38 @@ date: AT Computing
 paging: Innovation Day - HashiCorp
 ---
 
-# playbooks/01_common.yml
+# HashiStack Components
 
-## Steps
+Explained in a basic way
+
+## Consul
+
+Phone book / Yellow pages
+
+## Vault
+
+Keeps your secrets secret
+
+## Nomad
+
+Runs and maintaines the state of your apps
+
+---
+
+# playbooks/01_common.yml
 
 - Creates a directory on `desktop` to store tokens (for demo only)
 - Installs basic packages
   - `atop`, `curl`, `jq`, `tree`, `vim` 
-- Adds HashiCorp repository to package manager and installs
-  - `consul`, `vault`, `nomad`, `boundary`
-  - `-autocomplete-install`
+- Adds HashiCorp repository to package manager
+  - Installs `consul`, `vault`, `nomad`, `boundary`
+  - Adds `-autocomplete-install`
 - Installs pip modules
   - `cryptography`, `docker`, `hvac`, `python-nomad`
 
 ---
 
 # playbooks/02_systemd_resolved.yml
-
-## Steps
 
 - Installs `systemd-resolved` package
 - Creates a custom configuration file for the domain `inthepicture.photo`
@@ -32,8 +46,6 @@ paging: Innovation Day - HashiCorp
 
 # playbooks/03_consul.yml
 
-## Steps
-
 - Creates `data` and `log` directories
 - Creates Consul CA (`consul ca tls create`)
   - Creates server and client certificates (`consul tls cert create`)
@@ -41,7 +53,7 @@ paging: Innovation Day - HashiCorp
 - Creates an encryption key (`consul keygen`)
 - Creates config file and systemd unit
 - Bootraps Consul (`consul acl bootstrap`)
-  - Create Consul policies for agents and DNS
+  - Creates Consul policies for Consul agents and DNS requests
 - Installs CNI plugin on Docker hosts
 - Creates a scheduled backup job
   - (`consul operator snapshot`)
@@ -51,8 +63,6 @@ paging: Innovation Day - HashiCorp
 ---
 
 # playbooks/04_vault.yml
-
-## Steps
 
 - Creates `data` and `log` directories
 - Creates config file and systemd unit
@@ -72,8 +82,6 @@ paging: Innovation Day - HashiCorp
 
 # playbooks/05_nomad.yml
 
-## Steps
-
 - Creates `data` and `log` directories
 - Creates config file and systemd unit
 - Creates Consul policies for Nomad
@@ -90,14 +98,12 @@ paging: Innovation Day - HashiCorp
 
 # ./aperture.sh
 
-## Steps
-
-### Generic
+## Generic
 
 - Reads Stack servers and clients from `ansible-inventory`
 - Reads credentials from local stored tokens
 
-### Consul
+## Consul
 
 - Port test on tcp/8500 (`netcat`)
 - Check registration for Consul clients (`consul members`)
@@ -105,18 +111,16 @@ paging: Innovation Day - HashiCorp
 
 ---
 
-# ./aperture.sh
+# ./aperture.sh (continued)
 
-## Steps (continued)
-
-### Vault
+## Vault
 
 - Port test on tcp/8200 (`netcat`)
 - Checks for initialized and unsealed servers
 - Creates a kv-v2 secrets engine and populates a secret (`curl`)
   - Reads the secret from Vault (`curl`)
 
-### Nomad
+## Nomad
 
 - Port test on tcp/4646 (`netcat`)
 - Checks number of Nomad servers and clients (`curl`)
