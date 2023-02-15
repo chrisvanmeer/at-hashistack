@@ -46,10 +46,12 @@
   delegate_to: localhost
   register: nomad_snapshot_bootstrap_output
   run_once: true
+  tags: backup
 
 - name: Set the snapshot Secret ID as a fact.
   ansible.builtin.set_fact:
     nomad_snapshot_secret_id: "{{ nomad_snapshot_bootstrap_output.stdout }}"
+  tags: backup
 
 - name: Snapshot setup.
   block:
