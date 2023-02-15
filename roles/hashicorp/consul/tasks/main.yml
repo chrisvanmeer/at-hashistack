@@ -14,7 +14,6 @@
 - name: Service Mesh.
   ansible.builtin.include_tasks: service-mesh.yml
   when: ansible_hostname in groups['docker_clients']
-  failed_when: false
 
 - name: Backup.
   ansible.builtin.include_tasks: backup.yml

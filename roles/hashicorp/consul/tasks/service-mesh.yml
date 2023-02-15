@@ -9,6 +9,7 @@
     src: "{{ consul_cni_plugin_url }}"
     dest: "{{ consul_cni_target_directory }}"
     remote_src: true
+  failed_when: false
 - name: Ensure sysctl settings are present and loaded.
   ansible.posix.sysctl:
     name: "{{ item.key }}"
