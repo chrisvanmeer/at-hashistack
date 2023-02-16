@@ -1,16 +1,14 @@
 [ ca ]
 default_ca              = CA_default
-cadir                   = {{ vault_ssl_base_path }}
-dir                     = {{ vault_ssl_base_path }}/intermediate
 
 [ CA_default ]
-certificate             = $cadir/vault-ca.pem
-private_key             = $cadir/vault-ca-key.pem
-certs                   = $dir/certs
-database                = $dir/index.txt
-new_certs_dir           = $dir/certs
-serial                  = $dir/serial
-crlnumber               = $dir/crlnumber
+certificate             = {{ vault_ssl_base_path }}/vault-ca.pem
+private_key             = {{ vault_ssl_base_path }}/vault-ca-key.pem
+certs                   = {{ vault_ssl_base_path }}/intermediate/certs
+database                = {{ vault_ssl_base_path }}/intermediate/index.txt
+new_certs_dir           = {{ vault_ssl_base_path }}/intermediate/certs
+serial                  = {{ vault_ssl_base_path }}/intermediate/serial
+crlnumber               = {{ vault_ssl_base_path }}/intermediate/crlnumber
 name_opt                = ca_default
 cert_opt                = ca_default
 rand_serial             = yes
