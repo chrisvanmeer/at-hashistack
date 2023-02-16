@@ -7,6 +7,7 @@
 
 - name: Login to Vault
   delegate_to: "{{ groups['vault_servers'] | first }}"
+  when: ansible_hostname in groups['vault_servers']
   run_once: true
   tags: pki_int
   block:
@@ -34,6 +35,7 @@
   ignore_errors: true
   no_log: true
   register: intermediate_check
+  when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
@@ -42,12 +44,15 @@
   ansible.builtin.stat:
     path: "{{ vault_pki_int_local_path }}"
   register: pki_int_dir
+  when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
 
 - name: Prep
-  when: pki_int_dir.stat.isdir is not defined
+  when:
+    - pki_int_dir.stat.isdir is not defined
+    - ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
@@ -74,7 +79,9 @@
         mode: 0644
 
 - name: Ensure PKI
-  when: intermediate_check.rc == 1
+  when:
+    - intermediate_check.rc == 1
+    - ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
@@ -147,12 +154,15 @@
   ignore_errors: true
   no_log: true
   register: intermediate_check_two
+  when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
 
 - name: Vault - Retrieve issuers # noqa risky-shell-pipe
-  when: intermediate_check_two.rc == 0
+  when:
+    - intermediate_check_two.rc == 0
+    - ansible_hostname in groups['vault_servers']
   ansible.builtin.shell: "{{ vault_binary }} list -format=json {{ vault_pki_int_path }}/issuers | jq -r .[]"
   environment:
     VAULT_TOKEN: "{{ admin_token }}"
@@ -163,7 +173,9 @@
   tags: pki_int
 
 - name: Vault - Retrieve issuer CA chain # noqa risky-shell-pipe
-  when: intermediate_check_two.rc == 0
+  when:
+    - intermediate_check_two.rc == 0
+    - ansible_hostname in groups['vault_servers']
   ansible.builtin.shell: "{{ vault_binary }} list -format=json {{ vault_pki_int_path }}/issuer/{{ pki_int_issuers.stdout }} | jq -r .data.ca_chain | jq -r .[]"
   environment:
     VAULT_TOKEN: "{{ admin_token }}"
@@ -174,7 +186,8 @@
   tags: pki_int
 
 - name: Update Certificate Chain
-  when: intermediate_check_two.rc == 0
+  when:
+    - intermediate_check_two.rc == 0
   tags: pki_int
   block:
     - name: Ensure the CA chain is copied to the local certs directory - Debian.

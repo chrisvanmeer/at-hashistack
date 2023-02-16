@@ -28,7 +28,7 @@
 
 - name: PKI Intermediate CA.
   ansible.builtin.include_tasks: pki_int.yml
-  when: ansible_hostname in groups['vault_servers']
+  # when: ansible_hostname in groups['vault_servers']
   tags: pki_int
 
 - name: Logging.
