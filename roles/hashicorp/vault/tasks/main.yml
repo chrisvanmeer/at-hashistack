@@ -26,6 +26,11 @@
   ansible.builtin.include_tasks: prep-for-usage.yml
   when: ansible_hostname in groups['vault_servers']
 
+- name: PKI Intermediate CA.
+  ansible.builtin.include_tasks: pki_int.yml
+  when: ansible_hostname in groups['vault_servers']
+  tags: pki_int
+
 - name: Logging.
   ansible.builtin.include_tasks: logging.yml
   when: ansible_hostname in groups['vault_servers']
