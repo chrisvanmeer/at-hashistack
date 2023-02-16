@@ -39,12 +39,25 @@
   run_once: true
   tags: pki_int
 
-- name: Ensure PKI
-  when: intermediate_check.rc == 1
+- name: Check if Intermediate certificate directory exists.
+  ansible.builtin.stat:
+    path: "{{ vault_pki_int_local_path }}"
+  register: pki_int_dir
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+  tags: pki_int
+
+- name: Prep
+  when: not pki_int.stat.exists and pki_int.stat.isdir
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
   block:
+    - name: Prep - Ensure intermediate main directory
+      ansible.builtin.file:
+        path: "{{ vault_pki_int_local_path }}"
+        state: directory
+        mode: 0700
     - name: Prep - Ensure intermediate certificate directory
       ansible.builtin.file:
         path: "{{ vault_pki_int_local_path }}/certs"
@@ -59,6 +72,14 @@
       ansible.builtin.template:
         src: openssl_int.cnf.j2
         dest: "{{ vault_ssl_base_path }}/intermediate/openssl_int.cnf"
+        mode: 0644
+
+- name: Ensure PKI
+  when: intermediate_check.rc == 1
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+  tags: pki_int
+  block:
     - name: Vault - Ensure secrets engine
       ansible.builtin.command:
         cmd: "{{ vault_binary }} secrets enable -path={{ vault_pki_int_path }} pki"
@@ -77,11 +98,6 @@
       environment:
         VAULT_TOKEN: "{{ admin_token }}"
       changed_when: true
-    - name: OpenSSL - Ensure intermediate main directory
-      ansible.builtin.file:
-        path: "{{ vault_pki_int_local_path }}"
-        state: directory
-        mode: 0700
     - name: OpenSSL - Sign certificate with Root CA
       ansible.builtin.command:
         cmd: "openssl ca -batch -config {{ vault_pki_int_local_path }}/openssl_int.cnf -in {{ vault_pki_int_csr_file }} -out {{ vault_pki_int_pem_file }} -days {{ vault_pki_int_openssl_days }} -notext"
