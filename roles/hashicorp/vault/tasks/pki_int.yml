@@ -24,7 +24,6 @@
         admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
 
   delegate_to: "{{ groups['vault_servers'] | first }}"
-  when: ansible_hostname in groups['vault_servers']
   run_once: true
   tags: pki_int
 
@@ -33,9 +32,75 @@
   environment:
     VAULT_TOKEN: "{{ admin_token }}"
   changed_when: false
+  ignore_errors: true
+  no_log: true
   register: intermediate_check
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
   tags: pki_int
 
-- name: Debug
-  debug: var=intermediate_check
+- name: Ensure PKI
+  when: intermediate_check.rc == 1
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
   tags: pki_int
+  block:
+    - name: Vault - Ensure secrets engine
+      ansible.builtin.command:
+        cmd: "{{ vault_binary }} enable -path={{ vault_pki_int_path }} pki"
+      environment:
+        VAULT_TOKEN: "{{ admin_token }}"
+      changed_when: true
+    - name: Vault - Tune secrets engine
+      ansible.builtin.command:
+        cmd: "{{ vault_binary }} tune -max-lease-ttl={{ vault_pki_int_max_ttl }} {{ vault_pki_int_path }}"
+      environment:
+        VAULT_TOKEN: "{{ admin_token }}"
+      changed_when: true
+    - name: Vault - Create CSR
+      ansible.builtin.shell:
+        cmd: '{{ vault_binary }} write -format=json {{ vault_pki_int_path }}/intermediate/generate/internal common_name="{{ vault_pki_int_common_name }}" ttl={{ vault_pki_int_ttl }} | jq -r .data.csr > {{ vault_pki_int_csr_file }}'
+      environment:
+        VAULT_TOKEN: "{{ admin_token }}"
+      changed_when: true
+    - name: OpenSSL - Ensure intermediate main directory
+      ansible.builtin.file:
+        path: "{{ vault_pki_local_path }}"
+        state: directory
+        mode: 0700
+    - name: OpenSSL - Ensure intermediate certificate directory
+      ansible.builtin.file:
+        path: "{{ vault_pki_local_path }}/certs"
+        state: directory
+        mode: 0700
+    - name: OpenSSL - Ensure intermediate database
+      ansible.builtin.file:
+        path: "{{ vault_pki_local_path }}/index.txt"
+        state: touch
+        mode: 0600
+    - name: OpenSSL - Ensure openssl config file
+      ansible.builtin.template:
+        src: openssl_int.cnf.j2
+        dest: "{{ vault_ssl_base_path }}/intermediate/openssl_int.cnf.j2"
+    - name: OpenSSL - Sign certificate with Root CA
+      ansible.builtin.command:
+        cmd: "openssl ca -batch -config {{ vault_pki_local_path }}/openssl_int.cnf.j2 -in {{ vault_ssl_base_path }}/{{ vault_pki_int_csr_file }} -out {{ vault_ssl_base_path }}/{{ vault_pki_int_pem_file }} -days {{ vault_pki_int_openssl_days }} -notext"
+      changed_when: true
+    - name: Vault - Import signed certificate
+      ansible.builtin.command:
+        cmd: "{{ vault_binary }} write {{ vault_pki_int_path }}/intermediate/set-signed certificate=@{{ vault_pki_int_pem_file }}"
+      environment:
+        VAULT_TOKEN: "{{ admin_token }}"
+      changed_when: true
+    - name: Vault - Set URLs
+      ansible.builtin.command:
+        cmd: '{{ vault_binary }} write {{ vault_pki_int_path }}/config/urls issuing_certificates="{{ vault_pki_int_url_issue }}" crl_distribution_points="{{ vault_pki_int_url_crl }}"'
+      environment:
+        VAULT_TOKEN: "{{ admin_token }}"
+      changed_when: true
+    - name: Vault - Write role for inthepicture.photo
+      ansible.builtin.command:
+        cmd: "{{ vault_binary }} write {{ vault_pki_int_path }}/roles/{{ vault_pki_int_role_name }} allowed_domains={{ vault_pki_int_role_allowed_domains }} allow_subdomains={{ vault_pki_int_role_allow_subdomains }} max_ttl={{ vault_pki_int_role_max_ttl }}"
+      environment:
+        VAULT_TOKEN: "{{ admin_token }}"
+      changed_when: true
