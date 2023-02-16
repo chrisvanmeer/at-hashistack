@@ -1,0 +1,37 @@
+- name: Create fact of admin password.
+  ansible.builtin.set_fact:
+    admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Login to Vault
+  block:
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  when: ansible_hostname in groups['vault_servers']
+  run_once: true
+
+- name: Check if there is already a Intermediate PKI # noqa risky-shell-pipe
+  ansible.builtin.shell: "{{ vault_binary }} secrets list | grep {{ vault_pki_int_path }}"
+  environment:
+    VAULT_TOKEN: "{{ admin_token }}"
+  changed_when: false
+  register: intermediate_check
+
+- name: Debug
+  debug: var=intermediate_check
