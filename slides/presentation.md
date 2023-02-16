@@ -66,8 +66,10 @@ Runs and maintains the state of your apps
 
 - Creates `data` and `log` directories
 - Creates config file and systemd unit
-- Creates a PKI infrastructure (`openssl`)
+- Creates a Root CA (`openssl`)
   - Distributes CA certificate to all machines (trust store)
+- Creates an Intermediate CA (`vault pki`)
+  - Distributes chain to all machines (trust store)
 - Creates Consul policy for Vault
   - Creates token and fills `vault.hcl` config file
 - Initializes and unseals Vault
