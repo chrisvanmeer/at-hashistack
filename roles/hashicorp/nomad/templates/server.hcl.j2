@@ -1,7 +1,7 @@
 server {
   enabled          = true
   bootstrap_expect = {{ groups['nomad_servers'] | length }}
-  encrypt          = "{{ gossip_keyring.stdout }}"
+  encrypt          = "{{ gossip_encryption_key.stdout }}"
 }
 
 client {
