@@ -47,7 +47,7 @@
   block:
     - name: Vault - Ensure secrets engine
       ansible.builtin.command:
-        cmd: "{{ vault_binary }} enable -path={{ vault_pki_int_path }} pki"
+        cmd: "{{ vault_binary }} secrets enable -path={{ vault_pki_int_path }} pki"
       environment:
         VAULT_TOKEN: "{{ admin_token }}"
       changed_when: true
