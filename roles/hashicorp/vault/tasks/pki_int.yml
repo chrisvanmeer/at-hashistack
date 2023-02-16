@@ -65,17 +65,17 @@
       changed_when: true
     - name: OpenSSL - Ensure intermediate main directory
       ansible.builtin.file:
-        path: "{{ vault_pki_local_path }}"
+        path: "{{ vault_pki_int_local_path }}"
         state: directory
         mode: 0700
     - name: OpenSSL - Ensure intermediate certificate directory
       ansible.builtin.file:
-        path: "{{ vault_pki_local_path }}/certs"
+        path: "{{ vault_pki_int_local_path }}/certs"
         state: directory
         mode: 0700
     - name: OpenSSL - Ensure intermediate database
       ansible.builtin.file:
-        path: "{{ vault_pki_local_path }}/index.txt"
+        path: "{{ vault_pki_int_local_path }}/index.txt"
         state: touch
         mode: 0600
     - name: OpenSSL - Ensure openssl config file
