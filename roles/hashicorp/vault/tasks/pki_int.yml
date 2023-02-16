@@ -48,7 +48,7 @@
   tags: pki_int
 
 - name: Prep
-  when: not pki_int.stat.exists and pki_int.stat.isdir
+  when: not pki_int_dir.stat.exists and pki_int_dir.stat.isdir
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
