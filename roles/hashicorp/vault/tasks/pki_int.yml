@@ -45,6 +45,20 @@
   run_once: true
   tags: pki_int
   block:
+    - name: Prep - Ensure intermediate certificate directory
+      ansible.builtin.file:
+        path: "{{ vault_pki_int_local_path }}/certs"
+        state: directory
+        mode: 0700
+    - name: Prep - Ensure intermediate database
+      ansible.builtin.file:
+        path: "{{ vault_pki_int_local_path }}/index.txt"
+        state: touch
+        mode: 0600
+    - name: Prep - Ensure openssl config file
+      ansible.builtin.template:
+        src: openssl_int.cnf.j2
+        dest: "{{ vault_ssl_base_path }}/intermediate/openssl_int.cnf.j2"
     - name: Vault - Ensure secrets engine
       ansible.builtin.command:
         cmd: "{{ vault_binary }} secrets enable -path={{ vault_pki_int_path }} pki"
@@ -68,20 +82,6 @@
         path: "{{ vault_pki_int_local_path }}"
         state: directory
         mode: 0700
-    - name: OpenSSL - Ensure intermediate certificate directory
-      ansible.builtin.file:
-        path: "{{ vault_pki_int_local_path }}/certs"
-        state: directory
-        mode: 0700
-    - name: OpenSSL - Ensure intermediate database
-      ansible.builtin.file:
-        path: "{{ vault_pki_int_local_path }}/index.txt"
-        state: touch
-        mode: 0600
-    - name: OpenSSL - Ensure openssl config file
-      ansible.builtin.template:
-        src: openssl_int.cnf.j2
-        dest: "{{ vault_ssl_base_path }}/intermediate/openssl_int.cnf.j2"
     - name: OpenSSL - Sign certificate with Root CA
       ansible.builtin.command:
         cmd: "openssl ca -batch -config {{ vault_pki_local_path }}/openssl_int.cnf.j2 -in {{ vault_ssl_base_path }}/{{ vault_pki_int_csr_file }} -out {{ vault_ssl_base_path }}/{{ vault_pki_int_pem_file }} -days {{ vault_pki_int_openssl_days }} -notext"
