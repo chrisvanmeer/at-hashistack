@@ -104,3 +104,10 @@
       environment:
         VAULT_TOKEN: "{{ admin_token }}"
       changed_when: true
+    - name: Ensure cleanup
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ vault_pki_int_csr_file }}"
+        - "{{ vault_pki_int_pem_file }}"
