@@ -3,6 +3,7 @@
     admin_password: "{{ lookup('file', vault_admin_local_path) }}"
   delegate_to: localhost
   run_once: true
+  tags: pki_int
 
 - name: Login to Vault
   block:
@@ -25,6 +26,7 @@
   delegate_to: "{{ groups['vault_servers'] | first }}"
   when: ansible_hostname in groups['vault_servers']
   run_once: true
+  tags: pki_int
 
 - name: Check if there is already a Intermediate PKI # noqa risky-shell-pipe
   ansible.builtin.shell: "{{ vault_binary }} secrets list | grep {{ vault_pki_int_path }}"
@@ -32,6 +34,8 @@
     VAULT_TOKEN: "{{ admin_token }}"
   changed_when: false
   register: intermediate_check
+  tags: pki_int
 
 - name: Debug
   debug: var=intermediate_check
+  tags: pki_int
