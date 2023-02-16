@@ -75,7 +75,12 @@
     - name: Prep - Ensure openssl config file
       ansible.builtin.template:
         src: openssl_int.cnf.j2
-        dest: "{{ vault_ssl_base_path }}/intermediate/openssl_int.cnf"
+        dest: "{{ vault_pki_int_local_path }}/openssl_int.cnf"
+        mode: 0644
+    - name: Prep - Ensure Vault policy file
+      ansible.builtin.template:
+        src: intermediate-ca-policy.hcl.j2
+        dest: "{{ vault_pki_int_policy_file }}"
         mode: 0644
 
 - name: Ensure PKI
@@ -120,7 +125,7 @@
       environment:
         VAULT_TOKEN: "{{ admin_token }}"
       changed_when: true
-    - name: Vault - Write role for inthepicture.photo
+    - name: Vault - Write PKI role for inthepicture.photo
       ansible.builtin.command:
         cmd: "{{ vault_binary }} write {{ vault_pki_int_path }}/roles/{{ vault_pki_int_role_name }} allowed_domains={{ vault_pki_int_role_allowed_domains }} allow_subdomains={{ vault_pki_int_role_allow_subdomains }} max_ttl={{ vault_pki_int_role_max_ttl }}"
       environment:
@@ -128,13 +133,7 @@
       changed_when: true
     - name: Vault - Write policy for accessing the secrets engine
       ansible.builtin.command:
-        cmd: |
-          {{ vault_binary }} policy write {{ vault_pki_int_policy_name }} - <<EOF
-          path "pki*"                                  { capabilities = ["read", "list"] }
-          path "{{ vault_pki_int_path }}/roles/{{ vault_pki_int_role_name }}"   { capabilities = ["create", "update"] }
-          path "{{ vault_pki_int_path }}/sign/{{ vault_pki_int_role_name }}"    { capabilities = ["create", "update"] }
-          path "{{ vault_pki_int_path }}/issue/{{ vault_pki_int_role_name }}"   { capabilities = ["create"] }
-          EOF
+        cmd: "{{ vault_binary }} policy write {{ vault_pki_int_policy_name }} {{ vault_pki_int_policy_file }}"
       environment:
         VAULT_TOKEN: "{{ admin_token }}"
       changed_when: true
@@ -145,6 +144,7 @@
       loop:
         - "{{ vault_pki_int_csr_file }}"
         - "{{ vault_pki_int_pem_file }}"
+        - "{{ vault_pki_int_policy_file }}"
 
 - name: Again check if there is a Intermediate PKI # noqa risky-shell-pipe
   ansible.builtin.shell: "{{ vault_binary }} secrets list | grep {{ vault_pki_int_path }}"

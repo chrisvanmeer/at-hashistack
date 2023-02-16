@@ -1,0 +1,4 @@
+path "pki*"                                  { capabilities = ["read", "list"] }
+path "{{ vault_pki_int_path }}/roles/{{ vault_pki_int_role_name }}"   { capabilities = ["create", "update"] }
+path "{{ vault_pki_int_path }}/sign/{{ vault_pki_int_role_name }}"    { capabilities = ["create", "update"] }
+path "{{ vault_pki_int_path }}/issue/{{ vault_pki_int_role_name }}"   { capabilities = ["create"] }
