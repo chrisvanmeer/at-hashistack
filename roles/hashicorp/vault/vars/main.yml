@@ -67,8 +67,8 @@ vault_service_policy_file_remote: "{{ vault_data_directory }}/{{ vault_service_p
 vault_consul_service_name: "vault-service"
 vault_consul_service_description: "Vault Service Token"
 
-vault_admin_policy_name: "admin-policy"
-vault_admin_group_name: "admin-group"
+vault_admin_policy_name: "pol-admin"
+vault_admin_group_name: "grp-admin"
 vault_admin_username: "atcomputing"
 vault_admin_local_path: "{{ bootstrap_location }}/{{ vault_admin_username }}.vault.password"
 
@@ -86,3 +86,4 @@ vault_pki_int_role_allowed_domains: "inthepicture.photo"
 vault_pki_int_role_allow_subdomains: "true"
 vault_pki_int_role_max_ttl: "72h"
 vault_pki_int_openssl_days: "1825"
+vault_pki_int_policy_name: "pol-pki-int"
