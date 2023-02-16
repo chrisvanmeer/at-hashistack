@@ -1,6 +1,11 @@
 server {
-  enabled = true
+  enabled          = true
   bootstrap_expect = {{ groups['nomad_servers'] | length }}
+  encrypt          = "{{ gossip_keyring.stdout }}"
+}
+
+client {
+  enabled = false
 }
 
 acl {

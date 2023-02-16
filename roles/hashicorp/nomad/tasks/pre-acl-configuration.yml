@@ -11,6 +11,14 @@
   ansible.builtin.set_fact:
     consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
 
+- name: Generate a gossip keyring.
+  ansible.builtin.command:
+    cmd: nomad operator gossip keyring generate
+  register: gossip_keyring
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
+
 - name: Ensure general configuration is present.
   ansible.builtin.template:
     src: "nomad.hcl.j2"
