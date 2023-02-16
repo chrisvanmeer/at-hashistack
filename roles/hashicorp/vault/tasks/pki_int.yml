@@ -204,10 +204,10 @@
         mode: 0644
       when: ansible_os_family == 'RedHat'
 
-    - name: Ensure chain index is updated - Debian.
+    - name: Ensure certificate index is updated - Debian.
       ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
       when: ansible_os_family == 'Debian'
 
-    - name: Ensure chain index is updated - RedHat.
+    - name: Ensure certificate index is updated - RedHat.
       ansible.builtin.command: "/usr/bin/update-ca-trust extract"
       when: ansible_os_family == 'RedHat'
