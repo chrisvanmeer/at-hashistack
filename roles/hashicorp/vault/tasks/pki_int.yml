@@ -176,7 +176,7 @@
   when:
     - intermediate_check_two.rc == 0
     - ansible_hostname in groups['vault_servers']
-  ansible.builtin.shell: "{{ vault_binary }} list -format=json {{ vault_pki_int_path }}/issuer/{{ pki_int_issuers.stdout }} | jq -r .data.ca_chain | jq -r .[]"
+  ansible.builtin.shell: "{{ vault_binary }} list -format=json {{ vault_pki_int_path }}/issuer/{{ pki_int_issuers.stdout }} | jq -r .data.ca_chain"
   environment:
     VAULT_TOKEN: "{{ admin_token }}"
   changed_when: false
@@ -185,29 +185,37 @@
   run_once: true
   tags: pki_int
 
-- name: Update Certificate Chain
+- name: Vault - Retrieve issuer CA chain # noqa risky-shell-pipe
   when:
     - intermediate_check_two.rc == 0
+    - ansible_hostname in groups['vault_servers']
+  ansible.builtin.debug: var=pki_int_ca_chain.stdout
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
   tags: pki_int
-  block:
-    - name: Ensure the CA chain is copied to the local certs directory - Debian.
-      ansible.builtin.copy:
-        dest: "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
-        content: "{{ pki_int_ca_chain.stdout }}"
-        mode: 0644
-      when: ansible_os_family == 'Debian'
+# - name: Update Certificate Chain
+#   when:
+#     - intermediate_check_two.rc == 0
+#   tags: pki_int
+#   block:
+#     - name: Ensure the CA chain is copied to the local certs directory - Debian.
+#       ansible.builtin.copy:
+#         dest: "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
+#         content: "{{ pki_int_ca_chain.stdout }}"
+#         mode: 0644
+#       when: ansible_os_family == 'Debian'
 
-    - name: Ensure the CA chain is copied to the local certs directory - RedHat.
-      ansible.builtin.copy:
-        dest: "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
-        content: "{{ pki_int_ca_chain.stdout }}"
-        mode: 0644
-      when: ansible_os_family == 'RedHat'
+#     - name: Ensure the CA chain is copied to the local certs directory - RedHat.
+#       ansible.builtin.copy:
+#         dest: "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
+#         content: "{{ pki_int_ca_chain.stdout }}"
+#         mode: 0644
+#       when: ansible_os_family == 'RedHat'
 
-    - name: Ensure chain index is updated - Debian.
-      ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
-      when: ansible_os_family == 'Debian'
+#     - name: Ensure chain index is updated - Debian.
+#       ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
+#       when: ansible_os_family == 'Debian'
 
-    - name: Ensure chain index is updated - RedHat.
-      ansible.builtin.command: "/usr/bin/update-ca-trust extract"
-      when: ansible_os_family == 'RedHat'
+#     - name: Ensure chain index is updated - RedHat.
+#       ansible.builtin.command: "/usr/bin/update-ca-trust extract"
+#       when: ansible_os_family == 'RedHat'
