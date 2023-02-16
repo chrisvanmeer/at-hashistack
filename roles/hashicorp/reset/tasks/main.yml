@@ -1,5 +1,4 @@
 ---
-
 - name: GENERAL
   tags: nomad, vault, consul
   block:
@@ -15,7 +14,6 @@
         consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
       failed_when: false
   run_once: true
-
 
 - name: NOMAD
   tags: nomad
@@ -113,7 +111,6 @@
       run_once: true
       ignore_errors: true
 
-
 - name: VAULT
   tags: vault
   block:
@@ -187,6 +184,16 @@
       ansible.builtin.command: "{{ consul_binary }} acl token delete -id {{ consul_vault_token.stdout }}"
       run_once: true
       ignore_errors: true
+    - name: VAULT - Delete Vault CA certs.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      ignore_errors: true
+      loop:
+        - "/etc/pki/ca-trust/source/anchors/{{ vault_pki_int_ca_share_filename }}"
+        - "/usr/local/share/ca-certificates/{{ vault_pki_int_ca_share_filename }}"
+        - "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
+        - "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
 
 - name: CONSUL
   tags: consul
@@ -277,4 +284,3 @@
         label: "{{ item.path }}"
   delegate_to: localhost
   run_once: true
-
