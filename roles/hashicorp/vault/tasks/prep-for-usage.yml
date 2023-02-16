@@ -59,7 +59,7 @@
 
     - name: Create a random password.
       ansible.builtin.set_fact:
-        random_password: "{{ lookup('password', '{{ vault_admin_local_path }} chars=ascii_letters,digits,punctuation length=40') }}"
+        random_password: "{{ lookup('password', '{{ vault_admin_local_path }} chars=ascii_letters,digits length=20') }}"
       become: false
 
     - name: Ensure admin user is created.
