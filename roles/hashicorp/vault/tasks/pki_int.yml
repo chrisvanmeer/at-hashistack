@@ -176,6 +176,15 @@
   when:
     - intermediate_check_two.rc == 0
     - ansible_hostname in groups['vault_servers']
+  ansible.builtin.debug: var=pki_int_issuers.stdout
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+  tags: pki_int
+
+- name: Vault - Retrieve issuer CA chain # noqa risky-shell-pipe
+  when:
+    - intermediate_check_two.rc == 0
+    - ansible_hostname in groups['vault_servers']
   ansible.builtin.shell: "{{ vault_binary }} list -format=json {{ vault_pki_int_path }}/issuer/{{ pki_int_issuers.stdout }} | jq -r .data.ca_chain"
   environment:
     VAULT_TOKEN: "{{ admin_token }}"
