@@ -5,6 +5,10 @@
     enabled: true
     state: started
 
+- name: Take time for the service to be operational
+  ansible.builtin.pause:
+    seconds: 2
+
 - name: Check the Vault initialization status.
   ansible.builtin.shell: "{{ vault_binary }} status | grep -i initialized | awk '{print $2}'" # noqa: risky-shell-pipe
   environment:
