@@ -11,7 +11,7 @@ Explained in a basic way
 
 ## Consul
 
-Phone book / Yellow pages
+Phone book / Yellow pages + connection hub
 
 ## Vault
 
@@ -19,7 +19,7 @@ Keeps your secrets secret
 
 ## Nomad
 
-Runs and maintaines the state of your apps
+Runs and maintains the state of your apps
 
 ---
 
@@ -27,7 +27,7 @@ Runs and maintaines the state of your apps
 
 - Creates a directory on `desktop` to store tokens (for demo only)
 - Installs basic packages
-  - `atop`, `curl`, `jq`, `tree`, `vim` 
+  - `atop`, `curl`, `jq`, `tree`, `vim`
 - Adds HashiCorp repository to package manager
   - Installs `consul`, `vault`, `nomad`, `boundary`
   - Adds `-autocomplete-install`
