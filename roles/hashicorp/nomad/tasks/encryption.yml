@@ -45,7 +45,7 @@
           - 200
           - 204
         validate_certs: false
-      failed_when: false
+      # failed_when: false
 
     - name: Issue Nomad Server certificate
       ansible.builtin.uri:
