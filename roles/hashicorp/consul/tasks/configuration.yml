@@ -33,6 +33,8 @@
 
     - name: Run consul members command.
       ansible.builtin.command: "{{ consul_binary }} members"
+      environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
       changed_when: false
       ignore_errors: true
       register: consul_members_output
