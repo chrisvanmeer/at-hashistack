@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ports
-CONSUL_PORT="8500"
+CONSUL_PORT="8501"
 VAULT_PORT="8200"
 NOMAD_PORT="4646"
 
@@ -247,17 +247,17 @@ function consul_checks() {
 
   ### Vault services
   echo ""
-  VAULT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/vault | jq -r ".[] | .Node" | uniq | wc -l)
+  VAULT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/vault | jq -r ".[] | .Node" | uniq | wc -l)
   output $i "Retrieving number of Vault services (API GET /health/checks/vault)" $VAULT_SERVICES
   ((i=i+1))
 
   ### Nomad server services
-  NOMAD_SERVER_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad | jq -r ".[] | .Node" | uniq | wc -l)
+  NOMAD_SERVER_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad | jq -r ".[] | .Node" | uniq | wc -l)
   output $i "Retrieving number of Nomad Server services (API GET /health/checks/nomad)" $NOMAD_SERVER_SERVICES
   ((i=i+1))
 
   ### Nomad client services
-  NOMAD_CLIENT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad-client | jq -r ".[] | .Node" | uniq | wc -l)
+  NOMAD_CLIENT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad-client | jq -r ".[] | .Node" | uniq | wc -l)
   output $i "Retrieving number of Nomad Client services (API GET /health/checks/nomad-client)" $NOMAD_CLIENT_SERVICES
   ((i=i+1))
 
@@ -469,7 +469,7 @@ function nomad_checks() {
 
   ### Consul service for Focus
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
+    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
     if [ "$NOMAD_JOB_CONSUL" == "passing" ]; then
       STAT="HEALTHY"
       SUC=1

@@ -11,6 +11,7 @@
 - name: Read Snapshot policy
   ansible.builtin.shell: "{{ consul_binary }} acl policy create -read {{ consul_snapshot_policy_name }} | awk '/Name/ {print $2}'"
   environment:
+    CONSUL_HTTP_ADDR: "{{ consul_address }}"
     CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
   changed_when: false
   register: consul_acl_policy_read_snapshot
@@ -30,6 +31,7 @@
     - name: Ensure that the policy is present in Consul.
       ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ consul_snapshot_policy_name }} -rules @{{ consul_snapshot_policy_file_name }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_output.stdout }}"
       args:
         chdir: "{{ consul_data_directory }}/"
@@ -39,6 +41,7 @@
     - name: Create ACL token using the above policy.
       ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ consul_snapshot_policy_description }}' -policy-name {{ consul_snapshot_policy_name }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_output.stdout }}"
       changed_when: false
       register: snapshot_policy_token_output_raw

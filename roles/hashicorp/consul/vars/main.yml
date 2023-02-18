@@ -20,6 +20,8 @@ consul_log_directory_group: "consul"
 consul_log_rotate_duration: "86400s"
 consul_log_rotate_max_files: "7"
 
+consul_address: "https://127.0.0.1:8501"
+
 consul_pause_seconds: "60"
 
 consul_tls_ca_certificate_days: "3650"

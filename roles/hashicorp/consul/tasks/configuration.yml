@@ -1,7 +1,6 @@
 ---
 - name: Consul - Configuration.
   block:
-
     - name: Ensure configuration is present on the server.
       ansible.builtin.template:
         src: "consul.hcl.j2"
@@ -91,6 +90,7 @@
 - name: Read agent policy
   ansible.builtin.shell: "{{ consul_binary }} acl policy create -read {{ consul_agent_policy_name }} | awk '/Name/ {print $2}'"
   environment:
+    CONSUL_HTTP_ADDR: "{{ consul_address }}"
     CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
   changed_when: false
   register: consul_acl_policy_read_consul_agent
@@ -106,6 +106,7 @@
     - name: Ensure consul-agent policy is registered.
       ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ consul_agent_policy_name }} -rules @{{ consul_agent_policy_file_name }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       args:
         chdir: "{{ consul_data_directory }}/"
@@ -115,6 +116,7 @@
     - name: Ensure consul agent token is generated.
       ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ consul_agent_policy_description }}' -policy-name {{ consul_agent_policy_name }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       changed_when: false
       register: agent_policy_token_output_raw
