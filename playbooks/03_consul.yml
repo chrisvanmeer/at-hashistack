@@ -23,8 +23,9 @@
 
   tasks:
     - name: Ensure Consul CA in trust store
-      when: ansible_hostname == "desktop"
-      delegate_to: consul1
+      when: ansible_hostname == "consul1"
+      delegate_to: desktop
+      tags: consul-desktop
       block:
         - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
           ansible.builtin.copy:
