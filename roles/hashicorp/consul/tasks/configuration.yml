@@ -56,6 +56,8 @@
   block:
     - name: Bootstrap - Run consul acl bootstrap command.
       ansible.builtin.command: "{{ consul_binary }} acl bootstrap"
+      environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
       changed_when: false
       register: consul_acl_bootstrap_raw
 
