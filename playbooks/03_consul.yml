@@ -21,6 +21,13 @@
     - ../roles/hashicorp/consul/vars/main.yml
 
   tasks:
+    - name: Ensure Consul address
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        search_string: "CONSUL_HTTP_ADDR"
+        line: "export CONSUL_HTTP_ADDR=https://consul.service.{{ consul_domain }}:8501"
+      tags: bashrc
+
     - name: Ensure Consul CA in trust store
       delegate_to: consul1
       tags: consul-ca
