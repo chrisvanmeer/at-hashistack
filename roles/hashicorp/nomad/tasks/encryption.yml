@@ -62,6 +62,13 @@
         validate_certs: false
       register: nomad_server_certificate_results
 
+    - name: debug
+      debug:
+        msg: { { nomad_server_certificate_results } }
+
+    - name: end play
+      meta: end_play
+
     - name: Issue Nomad Client certificate
       ansible.builtin.uri:
         url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/issue/{{ vault_pki_int_nomad_role }}"
