@@ -13,7 +13,10 @@
     - name: hashicorp/consul
 
 - name: Consul CA for desktop
-  hosts: desktop
+  hosts:
+    - desktop
+    - consul_servers
+    - consul_clients
   become: true
 
   vars_files:
