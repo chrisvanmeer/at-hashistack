@@ -46,7 +46,7 @@ Runs and maintains the state of your apps
 
 # playbooks/03_consul.yml
 
-- Creates `data` and `log` directories
+- Creates `data` `log` and `tls` directories
 - Creates Consul CA (`consul ca tls create`)
   - Creates server and client certificates (`consul tls cert create`)
   - Distributes certificates
@@ -64,7 +64,7 @@ Runs and maintains the state of your apps
 
 # playbooks/04_vault.yml
 
-- Creates `data` and `log` directories
+- Creates `data` `log` and `tls` directories
 - Creates config file and systemd unit
 - Creates a Root CA (`openssl`)
   - Distributes CA certificate to all machines (trust store)
@@ -84,7 +84,9 @@ Runs and maintains the state of your apps
 
 # playbooks/05_nomad.yml
 
-- Creates `data` and `log` directories
+- Creates `data` `log` and `tls` directories
+- Retrieves server and client certificates from Vault to encrypt RPC traffic
+- Encrypts gossip traffic (`nomad operator keygen`)
 - Creates config file and systemd unit
 - Creates Consul policies for Nomad
   - Creates token and fills `nomad.hcl` config file
