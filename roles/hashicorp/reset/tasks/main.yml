@@ -138,7 +138,7 @@
           ansible.builtin.set_fact:
             vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
 
-        - name: NOMAD - VAULT - Ensure PKI role for Nomad certificates
+        - name: NOMAD - VAULT - Ensure removal of Nomad cluster PKI role
           ansible.builtin.uri:
             url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
             method: DELETE
