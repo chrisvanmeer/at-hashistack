@@ -13,6 +13,12 @@ key_file = "{{ consul_etc_directory }}/{{ datacenter_name }}-{{ type }}-consul-0
 verify_incoming = false
 verify_outgoing = true
 verify_server_hostname = false
+
+ports {
+  http = -1
+  https = 8501
+}
+
 retry_join = [{% for host in groups["consul_servers"] %}{{ hostvars[host].ansible_default_ipv4.address | to_json }}{% if not loop.last %}, {% endif %}{% endfor %}]
 {% if ansible_hostname in groups['consul_servers'] %}
 bind_addr = "0.0.0.0"
