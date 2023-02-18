@@ -1,0 +1,128 @@
+- name: Set fact of active Vault.
+  ansible.builtin.set_fact:
+    active_vault_address: "https://active.vault.service.{{ consul_domain }}:8200"
+  tags: encryption
+
+- name: Retrieve certificates
+  when: ansible_hostname in groups['nomad_servers']
+  delegate_to: "{{ groups['nomad_servers'] | first }}"
+  tags: encryption
+  block:
+    - name: Set fact of active Vault
+      ansible.builtin.set_fact:
+        active_vault_address: "https://active.vault.service.{{ consul_domain }}:8200"
+
+    - name: Set fact of admin password
+      ansible.builtin.set_fact:
+        admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+
+    - name: Log in and retrieve client token
+      ansible.builtin.uri:
+        url: "{{ active_vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+
+    - name: Set fact of client token
+      ansible.builtin.set_fact:
+        vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+    - name: Issue Nomad Server certificate
+      ansible.builtin.uri:
+        url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/issue/{{ vault_pki_int_nomad_role }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body: '{ "common_name": "{{ nomad_tls_common_name_server }}", "ttl": "{{ nomad_tls_ttl }}", "ip_sans": "127.0.0.1", "alt_names": "localhost,{{ inventory_hostname }},{{ inventory_hostname }}.node.{{ consul_domain }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: nomad_server_certificate_results
+
+    - name: Issue Nomad Client certificate
+      ansible.builtin.uri:
+        url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/issue/{{ vault_pki_int_nomad_role }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body: '{ "common_name": "{{ nomad_tls_common_name_client }}", "ttl": "{{ nomad_tls_ttl }}", "ip_sans": "127.0.0.1", "alt_names": "localhost,{{ inventory_hostname }},{{ inventory_hostname }}.node.{{ consul_domain }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: nomad_client_certificate_results
+
+    - name: Set certificate facts
+      ansible.builtin.set_fact:
+        nomad_tls_ca_chain: "{{ nomad_server_certificate_results.json.data.ca_chain }}"
+        nomad_tls_server_cert: "{{ nomad_server_certificate_results.json.data.certificate }}"
+        nomad_tls_server_key: "{{ nomad_server_certificate_results.json.data.private_key }}"
+        nomad_tls_client_cert: "{{ nomad_client_certificate_results.json.data.certificate }}"
+        nomad_tls_client_key: "{{ nomad_client_certificate_results.json.data.private_key }}"
+
+- name: Ensure CA chain on nodes
+  ansible.builtin.copy:
+    dest: "{{ nomad_tls_directory }}/ca.crt"
+    content: "{{ nomad_tls_ca_chain }}"
+    mode: 0644
+    owner: "{{ nomad_tls_directory_owner }}"
+    group: "{{ nomad_tls_directory_group }}"
+  tags: encryption
+
+- name: Server certificate distribution
+  when: ansible_hostname in groups['nomad_servers']
+  tags: encryption
+  block:
+    - name: Ensure server certificate on server nodes
+      ansible.builtin.copy:
+        dest: "{{ nomad_tls_directory }}/server.crt"
+        content: "{{ nomad_tls_server_cert }}"
+        mode: 0644
+        owner: "{{ nomad_tls_directory_owner }}"
+        group: "{{ nomad_tls_directory_group }}"
+
+    - name: Ensure server key on server nodes
+      ansible.builtin.copy:
+        dest: "{{ nomad_tls_directory }}/server.key"
+        content: "{{ nomad_tls_server_key }}"
+        mode: 0600
+        owner: "{{ nomad_tls_directory_owner }}"
+        group: "{{ nomad_tls_directory_group }}"
+
+- name: Client certificate distribution
+  when: ansible_hostname in groups['nomad_clients']
+  tags: encryption
+  block:
+    - name: Ensure client certificate on client nodes
+      ansible.builtin.copy:
+        dest: "{{ nomad_tls_directory }}/client.crt"
+        content: "{{ nomad_tls_client_cert }}"
+        mode: 0644
+        owner: "{{ nomad_tls_directory_owner }}"
+        group: "{{ nomad_tls_directory_group }}"
+
+    - name: Ensure client key on client nodes
+      ansible.builtin.copy:
+        dest: "{{ nomad_tls_directory }}/client.key"
+        content: "{{ nomad_tls_client_key }}"
+        mode: 0600
+        owner: "{{ nomad_tls_directory_owner }}"
+        group: "{{ nomad_tls_directory_group }}"
+
+- name: Ensure config file on nodes
+  ansible.builtin.template:
+    src: tls.hcl.j2
+    dest: "{{ nomad_etc_directory }}/tls.hcl"
+    mode: "0600"
+    owner: "{{ nomad_data_directory_owner }}"
+    group: "{{ nomad_data_directory_group }}"
+  notify: Restart Nomad
+  tags: encryption

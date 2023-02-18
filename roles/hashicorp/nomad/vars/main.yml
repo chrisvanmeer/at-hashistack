@@ -19,6 +19,10 @@ nomad_log_directory_group: "root"
 nomad_log_rotate_duration: "86400s"
 nomad_log_rotate_max_files: "7"
 
+nomad_tls_directory: "/opt/nomad/tls"
+nomad_tls_directory_owner: "nomad"
+nomad_tls_directory_group: "nomad"
+
 nomad_pause_seconds: "60"
 nomad_bootstrapped_true_file: "{{ nomad_data_directory }}/bootstrapped.true"
 nomad_bootstrap_token_local_path: "{{ bootstrap_location }}/management.nomad.token"
@@ -65,3 +69,7 @@ nomad_snapshot_file_extension: "snap"
 
 nomad_snapshot_cron_backup_minute: "00"
 nomad_snapshot_cron_backup_hour: "00"
+
+nomad_tls_common_name_server: "server.global.nomad"
+nomad_tls_common_name_client: "client.global.nomad"
+nomad_tls_ttl: "8766h"

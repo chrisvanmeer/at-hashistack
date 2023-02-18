@@ -1,0 +1,13 @@
+tls {
+  http = true
+  rpc  = true
+
+{% if ansible_hostname in groups['nomad_servers'] %}
+{% set certname = "server" %}
+{% else %}
+{% set certname = "server" %}
+{% endif %}
+  ca_file   = "{{ nomad_tls_directory }}/ca.crt"
+  cert_file = "{{ nomad_tls_directory }}/{{ certname }}.crt"
+  key_file  = "{{ nomad_tls_directory }}/{{ certname }}.key"
+}

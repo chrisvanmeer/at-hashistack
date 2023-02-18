@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "{{ nomad_data_directory }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "{{ nomad_data_directory_owner }}"
     group: "{{ nomad_data_directory_group }}"
 
@@ -11,6 +11,14 @@
   ansible.builtin.file:
     path: "{{ nomad_log_directory }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "{{ nomad_log_directory_owner }}"
     group: "{{ nomad_log_directory_group }}"
+
+- name: Ensure TLS directory is present.
+  ansible.builtin.file:
+    path: "{{ nomad_tls_directory }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ nomad_tls_directory_owner }}"
+    group: "{{ nomad_tls_directory_group }}"
