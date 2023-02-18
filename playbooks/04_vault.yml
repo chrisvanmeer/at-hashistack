@@ -30,5 +30,5 @@
       ansible.builtin.lineinfile:
         path: "{{ ansible_env.HOME }}/.bashrc"
         search_string: "VAULT_ADDR"
-        line: "export VAULT_ADDR=https://active.vault.service.{{ consul_domain }}:8200"
+        line: "export VAULT_ADDR=https://vault.service.{{ consul_domain }}:8200"
       tags: bashrc
