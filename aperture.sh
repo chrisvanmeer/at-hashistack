@@ -220,7 +220,7 @@ function consul_checks() {
   echo "[Consul]"
   line
 
-  export CONSUL_HTTP_ADDR="http://${CONSUL_SERVERS[0]}:$CONSUL_PORT"
+  export CONSUL_HTTP_ADDR="https://${CONSUL_SERVERS[0]}:$CONSUL_PORT"
   i=1
 
   ## Port check
