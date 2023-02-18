@@ -11,3 +11,41 @@
 
   roles:
     - name: hashicorp/consul
+
+- name: Consul CA for desktop
+  hosts:
+    - consul1
+    - desktop
+  become: true
+
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+
+  tasks:
+    - name: Ensure Consul CA in trust store
+      when: ansible_hostname == "desktop"
+      delegate_to: consul1
+      block:
+        - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
+          ansible.builtin.copy:
+            dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
+            src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
+            mode: 0644
+            remote_src: true
+          when: ansible_os_family == 'Debian'
+
+        - name: Ensure the Consul CA certificate is copied to the local certs directory - RedHat.
+          ansible.builtin.copy:
+            dest: "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
+            src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
+            mode: 0644
+            remote_src: true
+          when: ansible_os_family == 'RedHat'
+
+        - name: Ensure certificate index is updated - Debian.
+          ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
+          when: ansible_os_family == 'Debian'
+
+        - name: Ensure certificate index is updated - RedHat.
+          ansible.builtin.command: "/usr/bin/update-ca-trust extract"
+          when: ansible_os_family == 'RedHat'

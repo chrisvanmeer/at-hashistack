@@ -1,5 +1,4 @@
 [all]
-desktop
 consul1
 consul2
 consul3
@@ -12,14 +11,7 @@ nomad3
 docker1
 docker2
 docker3
-
-[management]
 desktop
-
-[docker_clients]
-docker1
-docker2
-docker3
 
 [consul_servers]
 consul1
@@ -60,6 +52,14 @@ nomad3
 docker1
 docker2
 docker3
+
+[docker_clients]
+docker1
+docker2
+docker3
+
+[management]
+desktop
 
 [hashicorp_stack:children]
 nomad_servers
