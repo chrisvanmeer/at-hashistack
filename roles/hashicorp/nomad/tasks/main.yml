@@ -7,7 +7,7 @@
 
 - name: Encryption.
   ansible.builtin.include_tasks: encryption.yml
-  tags: [never, encryption]
+  tags: encryption
 
 - name: Pre-ACL configuration.
   ansible.builtin.include_tasks: pre-acl-configuration.yml
