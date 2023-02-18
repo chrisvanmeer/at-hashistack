@@ -35,7 +35,7 @@
 
     - name: Ensure PKI role for Nomad certificates
       ansible.builtin.uri:
-        url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/role/{{ vault_pki_int_nomad_role }}"
+        url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
         method: POST
         headers:
           X-Vault-Token: "{{ vault_token }}"
