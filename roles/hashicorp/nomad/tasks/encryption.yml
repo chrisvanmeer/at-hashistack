@@ -54,7 +54,7 @@
         headers:
           X-Vault-Token: "{{ vault_token }}"
         body_format: json
-        body: '{ "common_name": "{{ nomad_tls_common_name_server }}", "ttl": "{{ nomad_tls_ttl }}", "ip_sans": "127.0.0.1", "alt_names": "localhost,{{ inventory_hostname }},{{ inventory_hostname }}.node.{{ consul_domain }}" }'
+        body: '{ "common_name": "{{ nomad_tls_common_name_server }}", "ttl": "{{ nomad_tls_ttl }}", "ip_sans": "127.0.0.1", "alt_names": "localhost,{{ inventory_hostname }},{{ inventory_hostname }}.node.{{ consul_domain }},nomad.service.{{ consul_domain }}" }'
         status_code:
           - 200
           - 204

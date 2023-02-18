@@ -219,7 +219,7 @@ function consul_checks() {
   line
   echo "[Consul]"
   line
-  
+
   export CONSUL_HTTP_ADDR="http://${CONSUL_SERVERS[0]}:$CONSUL_PORT"
   i=1
 
@@ -230,7 +230,7 @@ function consul_checks() {
     output $i "Testing connection to Consul server $C_SERVER on port tcp/$CONSUL_PORT (CLI netcat)" $CONSUL_PORTCHECK
     ((i=i+1))
   done
-  
+
   ### Consul Clients
   echo ""
   for C_CLIENT in "${CONSUL_CLIENTS[@]}"
@@ -250,12 +250,12 @@ function consul_checks() {
   VAULT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/vault | jq -r ".[] | .Node" | uniq | wc -l)
   output $i "Retrieving number of Vault services (API GET /health/checks/vault)" $VAULT_SERVICES
   ((i=i+1))
-  
+
   ### Nomad server services
   NOMAD_SERVER_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad | jq -r ".[] | .Node" | uniq | wc -l)
   output $i "Retrieving number of Nomad Server services (API GET /health/checks/nomad)" $NOMAD_SERVER_SERVICES
   ((i=i+1))
-  
+
   ### Nomad client services
   NOMAD_CLIENT_SERVICES=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/nomad-client | jq -r ".[] | .Node" | uniq | wc -l)
   output $i "Retrieving number of Nomad Client services (API GET /health/checks/nomad-client)" $NOMAD_CLIENT_SERVICES
@@ -270,7 +270,7 @@ function vault_checks() {
   line
   echo "[Vault]"
   line
-  
+
   export VAULT_ADDR="https://${VAULT_SERVERS[0]}:$VAULT_PORT"
   i=1
 
@@ -281,7 +281,7 @@ function vault_checks() {
     output $i "Testing connection to Vault server $V_SERVER on port tcp/$VAULT_PORT (CLI netcat)" $VAULT_PORTCHECK
     ((i=i+1))
   done
-  
+
   ### Vault initialization state
   echo ""
   for V in "${VAULT_SERVERS[@]}"
@@ -371,7 +371,7 @@ function vault_checks() {
 
   echo ""
 
-} 
+}
 
 ### NOMAD
 
@@ -379,8 +379,8 @@ function nomad_checks() {
   line
   echo "[Nomad]"
   line
-  
-  export NOMAD_ADDR="http://${NOMAD_SERVERS[0]}:$NOMAD_PORT"
+
+  export NOMAD_ADDR="https://${NOMAD_SERVERS[0]}:$NOMAD_PORT"
   i=1
 
   ## Port check
@@ -390,21 +390,21 @@ function nomad_checks() {
     output $i "Testing connection to Nomad server $N_SERVER on port tcp/$NOMAD_PORT (CLI netcat)" $NOMAD_PORTCHECK
     ((i=i+1))
   done
-  
+
   ### Nomad peers
   echo ""
-  NOMAD_PEERS=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/status/peers 2>/dev/null | jq -r ".[]" 2>/dev/null | wc -l 2>/dev/null)
+  NOMAD_PEERS=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" https://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/status/peers 2>/dev/null | jq -r ".[]" 2>/dev/null | wc -l 2>/dev/null)
   output $i "Retrieving number of Nomad peers (API GET /status/peers)" $NOMAD_PEERS
   ((i=i+1))
 
   ### Nomad nodes
-  NOMAD_NODES=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/nodes 2>/dev/null | jq -r ".[] | .Name" 2>/dev/null | wc -l 2>/dev/null)
+  NOMAD_NODES=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" https://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/nodes 2>/dev/null | jq -r ".[] | .Name" 2>/dev/null | wc -l 2>/dev/null)
   output $i "Retrieving number of Nomad nodes from (API GET /nodes)" $NOMAD_NODES
   ((i=i+1))
 
   ### Starting Nomad test job
   echo ""
-  NOMAD_TEST_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" --request "POST" --data @focus/focus.json http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/jobs &> /dev/null; echo $?)
+  NOMAD_TEST_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" --request "POST" --data @focus/focus.json https://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/jobs &> /dev/null; echo $?)
   if [ $NOMAD_TEST_JOB -eq 0 ]; then
     STAT="STARTED"
   else
@@ -456,7 +456,7 @@ function nomad_checks() {
   ((i=i+1))
 
   ### Reading Nomad test job
-  NOMAD_READ_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" http://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/job/$NOMAD_DEMO_SERVICE/summary 2>/dev/null | jq -r .Summary.focus.Running 2>/dev/null)
+  NOMAD_READ_JOB=$(curl -s -H "X-Nomad-Token: $NOMAD_TOKEN" https://${NOMAD_SERVERS[0]}:$NOMAD_PORT/v1/job/$NOMAD_DEMO_SERVICE/summary 2>/dev/null | jq -r .Summary.focus.Running 2>/dev/null)
   if [ "$NOMAD_READ_JOB" == "1" ]; then
     STAT="RUNNING"
     SSUC=1
@@ -469,7 +469,7 @@ function nomad_checks() {
 
   ### Consul service for Focus
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
+    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
     if [ "$NOMAD_JOB_CONSUL" == "passing" ]; then
       STAT="HEALTHY"
       SUC=1
@@ -527,7 +527,7 @@ function nomad_checks() {
   output $i "Retrieving job output (CLI curl $NOMAD_DEMO_SERVICE.service.$CONSUL_DOMAIN$PORT)" "$FOCUS_OUTPUT"
   ((i=i+1))
 
-} 
+}
 
 function errors() {
 
