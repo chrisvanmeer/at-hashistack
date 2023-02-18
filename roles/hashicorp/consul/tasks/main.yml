@@ -21,6 +21,6 @@
   tags: backup
 
 - name: Unattended Upgrades
-  include_tasks: unattended-upgrades.yml
+  ansible.builtin.include_tasks: unattended-upgrades.yml
   when:
     - ansible_os_family == 'Debian'
