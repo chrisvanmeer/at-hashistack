@@ -110,6 +110,46 @@
       ansible.builtin.command: "{{ consul_binary }} acl token delete -id {{ consul_nomad_client_token.stdout }}"
       run_once: true
       ignore_errors: true
+    - name: NOMAD - Remove Vault PKI role
+      delegate_to: localhost
+      run_once: true
+      block:
+        - name: NOMAD - VAULT - Set fact of active Vault
+          ansible.builtin.set_fact:
+            active_vault_address: "https://active.vault.service.{{ consul_domain }}:8200"
+
+        - name: NOMAD - VAULT - Set fact of admin password
+          ansible.builtin.set_fact:
+            admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+
+        - name: NOMAD - VAULT - Log in and retrieve client token
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+            method: POST
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          register: vault_admin_login_response
+
+        - name: NOMAD - VAULT - Set fact of client token
+          ansible.builtin.set_fact:
+            vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+        - name: NOMAD - VAULT - Ensure PKI role for Nomad certificates
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            method: DELETE
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
 
 - name: VAULT
   tags: vault
