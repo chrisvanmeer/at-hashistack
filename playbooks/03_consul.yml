@@ -23,10 +23,9 @@
   tasks:
     - name: Ensure Consul address
       ansible.builtin.lineinfile:
-        path: "{{ ansible_env.HOME }}/.bashrc"
+        path: "{{ ansible_env.SUDO_USER }}/.bashrc"
         search_string: "CONSUL_HTTP_ADDR"
         line: "export CONSUL_HTTP_ADDR=https://consul.service.{{ consul_domain }}:8501"
-      become: false
       tags: bashrc
 
     - name: Ensure Consul CA in trust store
