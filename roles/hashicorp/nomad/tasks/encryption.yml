@@ -6,6 +6,7 @@
 - name: Retrieve certificates
   when: ansible_hostname in groups['nomad_servers']
   delegate_to: "{{ groups['nomad_servers'] | first }}"
+  run_once: true
   tags: encryption
   block:
     - name: Set fact of active Vault
@@ -31,6 +32,20 @@
     - name: Set fact of client token
       ansible.builtin.set_fact:
         vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+    - name: Ensure PKI role for Nomad certificates
+      ansible.builtin.uri:
+        url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/role/{{ vault_pki_int_nomad_role }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body: '{ "allowed_domains": ["global.nomad"], "allow_subdomains": true, "max_ttl": "{{ vault_pki_int_nomad_role_max_ttl }}", "require_cn": false }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      failed_when: false
 
     - name: Issue Nomad Server certificate
       ansible.builtin.uri:
