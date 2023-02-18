@@ -93,7 +93,7 @@
       register: consul_server_certificate_details
 
     - name: Server - Create server certificate.
-      ansible.builtin.command: "{{ consul_binary }} tls cert create -server -dc {{ datacenter_name }} -days {{ consul_tls_server_certificate_days }} -additional-dnsname={{ inventory_hostname }} -additional-dnsname={{ inventory_hostname }}.node.{{ consul_domain }} -additional-dnsname=consul.service.{{ consul_domain }}"
+      ansible.builtin.command: "{{ consul_binary }} tls cert create -server -dc {{ datacenter_name }} -days {{ consul_tls_server_certificate_days }} -additional-dnsname={{ inventory_hostname }} -additional-dnsname={{ inventory_hostname }}.node.{{ consul_domain }} -additional-dnsname={{ inventory_hostname }}.{{ datacenter_name }}.{{ consul_domain }} -additional-dnsname=consul.service.{{ consul_domain }}"
       args:
         chdir: "{{ consul_etc_directory }}"
       when: not consul_server_certificate_details.stat.exists
@@ -108,7 +108,7 @@
       register: consul_client_certificate_details
 
     - name: Client - Create client certificate.
-      ansible.builtin.command: "{{ consul_binary }} tls cert create -client -dc {{ datacenter_name }} -days {{ consul_tls_server_certificate_days }} -additional-dnsname={{ inventory_hostname }} -additional-dnsname={{ inventory_hostname }}.node.{{ consul_domain }} -additional-dnsname=consul.service.{{ consul_domain }}"
+      ansible.builtin.command: "{{ consul_binary }} tls cert create -client -dc {{ datacenter_name }} -days {{ consul_tls_server_certificate_days }} -additional-dnsname={{ inventory_hostname }} -additional-dnsname={{ inventory_hostname }}.node.{{ consul_domain }} -additional-dnsname={{ inventory_hostname }}.{{ datacenter_name }}.{{ consul_domain }} -additional-dnsname=consul.service.{{ consul_domain }}"
       args:
         chdir: "{{ consul_etc_directory }}"
       when: not consul_client_certificate_details.stat.exists
