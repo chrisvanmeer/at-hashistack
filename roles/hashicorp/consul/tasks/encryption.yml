@@ -112,14 +112,12 @@
       ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
       when:
         - consul_tls_ca_certificate_content is defined
-        - inventory_hostname != consul_first_server_hostname
         - ansible_os_family == 'Debian'
 
     - name: Ensure certificate index is updated - RedHat.
       ansible.builtin.command: "/usr/bin/update-ca-trust extract"
       when:
         - consul_tls_ca_certificate_content is defined
-        - inventory_hostname != consul_first_server_hostname
         - ansible_os_family == 'RedHat'
 
 # SERVER CERTIFICATES
