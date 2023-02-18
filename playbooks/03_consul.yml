@@ -28,16 +28,38 @@
         - name: Ensure the Consul CA certificate is copied to the other nodes  - Debian.
           ansible.posix.synchronize:
             src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
-            dest: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+            dest: "Consul_CA.pem"
           when: ansible_os_family == 'Debian'
           become: false
 
         - name: Ensure the Consul CA certificate is copied to the other nodes - RedHat.
           ansible.posix.synchronize:
             src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
-            dest: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+            dest: "Consul_CA.pem"
           when: ansible_os_family == 'RedHat'
           become: false
+
+        - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
+          ansible.builtin.copy:
+            src: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+            dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
+            remote_src: true
+          when: ansible_os_family == 'Debian'
+
+        - name: Ensure the Consul CA certificate is copied to the local certs directory - RedHat.
+          ansible.builtin.copy:
+            src: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+            dest: "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
+            remote_src: true
+          when: ansible_os_family == 'RedHat'
+
+        - name: Ensure certificate index is updated - Debian.
+          ansible.builtin.command: "/usr/sbin/update-ca-certificates -f"
+          when: ansible_os_family == 'Debian'
+
+        - name: Ensure certificate index is updated - RedHat.
+          ansible.builtin.command: "/usr/bin/update-ca-trust extract"
+          when: ansible_os_family == 'RedHat'
 
 - name: Consul CA for other nodes
   hosts:
