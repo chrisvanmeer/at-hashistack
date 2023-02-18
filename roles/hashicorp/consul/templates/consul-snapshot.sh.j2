@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ts=$(date "+%Y%m%d%H%M%S")
+export CONSUL_HTTP_ADDR={{ consul_address }}
 export CONSUL_HTTP_TOKEN={{ snapshot_token_output.stdout }}
 
 find {{ consul_snapshot_backup_location }} -name "*.{{ consul_snapshot_file_extension }}" -type f -mtime +{{ consul_snapshot_keep_days }} -exec rm {} \;
