@@ -23,6 +23,8 @@ nomad_tls_directory: "/opt/nomad/tls"
 nomad_tls_directory_owner: "nomad"
 nomad_tls_directory_group: "nomad"
 
+nomad_address: "https://127.0.0.1:4646"
+
 nomad_pause_seconds: "60"
 nomad_bootstrapped_true_file: "{{ nomad_data_directory }}/bootstrapped.true"
 nomad_bootstrap_token_local_path: "{{ bootstrap_location }}/management.nomad.token"

@@ -12,6 +12,7 @@
   ansible.builtin.shell: "{{ nomad_binary }} acl policy list | awk '/Token for snapshots/ {print $1, $2, $3}'"
   environment:
     NOMAD_TOKEN: "{{ nomad_acl_bootstrap_output.stdout }}"
+    NOMAD_ADDR: "{{ nomad_address }}"
   changed_when: false
   register: nomad_acl_policy_read_snapshot
   tags: backup
@@ -22,6 +23,7 @@
       ansible.builtin.command: "{{ nomad_binary }} acl token create -name='{{ nomad_snapshot_token_name }}' -global -type='management'"
       environment:
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_output.stdout }}"
+        NOMAD_ADDR: "{{ nomad_address }}"
       changed_when: false
       register: snapshot_policy_token_output_raw
 

@@ -11,6 +11,8 @@
   block:
     - name: ACL - Run nomad acl bootstrap command.
       ansible.builtin.command: "{{ nomad_binary }} acl bootstrap"
+      environment:
+        NOMAD_ADDR: "{{ nomad_address }}"
       changed_when: false
       register: nomad_acl_bootstrap_raw
 
@@ -38,6 +40,7 @@
       register: nomad_ops_token_output
       environment:
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+        NOMAD_ADDR: "{{ nomad_address }}"
 
     - name: ACL - Store Ops Management token local for safekeeping.
       ansible.builtin.copy:
@@ -52,6 +55,7 @@
       register: nomad_client_token_output
       environment:
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+        NOMAD_ADDR: "{{ nomad_address }}"
 
     - name: ACL - Store Client token local for safekeeping.
       ansible.builtin.copy:
@@ -71,6 +75,7 @@
       ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_client_policy_description }}' {{ nomad_client_policy_name}} {{ nomad_client_policy_remote_file }}"
       environment:
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+        NOMAD_ADDR: "{{ nomad_address }}"
 
     - name: ACL - Ensure bootstrap check file is in place.
       ansible.builtin.copy:

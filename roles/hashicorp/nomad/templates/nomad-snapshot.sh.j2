@@ -2,6 +2,7 @@
 
 ts=$(date "+%Y%m%d%H%M%S")
 export NOMAD_TOKEN={{ nomad_snapshot_secret_id }}
+export NOMAD_ADDR={{ nomad_address }}
 
 find {{ nomad_snapshot_backup_location }} -name "*.{{ nomad_snapshot_file_extension }}" -type f -mtime +{{ nomad_snapshot_keep_days }} -exec rm {} \;
 {{ nomad_binary }} operator snapshot save {{ nomad_snapshot_backup_location }}/{{ nomad_snapshot_filename }}_${ts}.{{ nomad_snapshot_file_extension }}
