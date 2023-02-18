@@ -94,7 +94,6 @@
         mode: "0644"
       when:
         - consul_tls_ca_certificate_content is defined
-        - inventory_hostname != consul_first_server_hostname
         - ansible_os_family == 'Debian'
 
     - name: CA - Ensure CA certificate and key are present on all other nodes - RedHat.
@@ -107,7 +106,6 @@
         mode: "0644"
       when:
         - consul_tls_ca_certificate_content is defined
-        - inventory_hostname != consul_first_server_hostname
         - ansible_os_family == 'RedHat'
 
     - name: Ensure certificate index is updated - Debian.
