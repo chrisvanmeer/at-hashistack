@@ -40,7 +40,7 @@
         headers:
           X-Vault-Token: "{{ vault_token }}"
         body_format: json
-        body: '{ "allowed_domains": ["global.nomad"], "allow_subdomains": true, "max_ttl": "{{ vault_pki_int_nomad_role_max_ttl }}", "require_cn": false }'
+        body: '{ "allowed_domains": ["global.nomad"], "allow_subdomains": true, "max_ttl": "{{ vault_pki_int_nomad_role_max_ttl }}", "require_cn": false, "allowed_other_sans": "*" }'
         status_code:
           - 200
           - 204
