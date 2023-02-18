@@ -75,7 +75,7 @@
 
   tasks:
     - name: Ensure Consul CA in trust store
-      tags: consul-caa
+      tags: consul-ca
       block:
         - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
           ansible.builtin.copy:
