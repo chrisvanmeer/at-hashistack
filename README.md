@@ -18,5 +18,7 @@ A work in progress
 ## URL's
 
 - <http://consul.service.inthepicture.photo:8500>
-- <http://active.vault.service.inthepicture.photo:8200>
-- <http://nomad.service.inthepicture.photo:4646>
+- <https://vault.service.inthepicture.photo:8200>
+- <https://nomad.service.inthepicture.photo:4646>
+
+Note that both Vault and Nomad are mTLS secured
