@@ -412,6 +412,26 @@ function nomad_checks() {
   fi
   output $i "Starting Focus test job (API POST /jobs)" $STAT
   if [ $NOMAD_TEST_JOB -eq 0 ]; then
+    output "" "   Waiting" "30"
+    sleep 0.7
+    output "" "   Waiting" "29"
+    sleep 0.7
+    output "" "   Waiting" "28"
+    sleep 0.7
+    output "" "   Waiting" "27"
+    sleep 0.7
+    output "" "   Waiting" "26"
+    sleep 0.7
+    output "" "   Waiting" "25"
+    sleep 0.7
+    output "" "   Waiting" "24"
+    sleep 0.7
+    output "" "   Waiting" "23"
+    sleep 0.7
+    output "" "   Waiting" "22"
+    sleep 0.7
+    output "" "   Waiting" "21"
+    sleep 0.7
     output "" "   Waiting" "20"
     sleep 0.7
     output "" "   Waiting" "19"
