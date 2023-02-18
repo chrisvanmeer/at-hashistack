@@ -7,7 +7,7 @@ A work in progress
 1. `ansible-playbook playbooks/01_common.yml`
 2. `ansible-playbook playbooks/02_systemd-resolved.yml`
 3. `ansible-playbook playbooks/03_consul.yml`
-4. Open Firefox and navigate to <http://consul.service.inthepicture.photo:8500>  
+4. Open Firefox and navigate to <https://consul.service.inthepicture.photo:8501>  
    This is handy to monitor the vault and nomad services while deploying.
 5. `ansible-playbook playbooks/04_vault.yml`
 6. `ansible-playbook playbooks/04_vault.yml --tags unseal`
@@ -17,7 +17,7 @@ A work in progress
 
 ## URL's
 
-- <http://consul.service.inthepicture.photo:8500>
+- <https://consul.service.inthepicture.photo:8501>
 - <https://vault.service.inthepicture.photo:8200>
 - <https://nomad.service.inthepicture.photo:4646>
 
