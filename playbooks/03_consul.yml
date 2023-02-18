@@ -23,7 +23,7 @@
   tasks:
     - name: Ensure Consul address
       ansible.builtin.lineinfile:
-        path: "{{ ansible_env.SUDO_USER }}/.bashrc"
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
         search_string: "CONSUL_HTTP_ADDR"
         line: "export CONSUL_HTTP_ADDR=https://consul.service.{{ consul_domain }}:8501"
       tags: bashrc
