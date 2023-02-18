@@ -25,18 +25,36 @@
   tasks:
     - name: Ensure Consul CA in trust store
       delegate_to: consul1
-      tags: consul-desktop
+      become: false
+      tags: consul-ca
       block:
-        - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
+        - name: Ensure the Consul CA certificate is copied to the other nodes  - Debian.
           ansible.posix.synchronize:
             src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
+            dest: "{{ ansible_env.HOME }}/Consul_CA.pem"
+          when: ansible_os_family == 'Debian'
+
+        - name: Ensure the Consul CA certificate is copied to the other nodes - RedHat.
+          ansible.posix.synchronize:
+            src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
+            dest: "{{ ansible_env.HOME }}/Consul_CA.pem"
+          when: ansible_os_family == 'RedHat'
+
+    - name: Ensure Consul CA in trust store
+      tags: consul-ca
+      block:
+        - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
+          ansible.builtin.copy:
+            src: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
             dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
+            remote_src: true
           when: ansible_os_family == 'Debian'
 
         - name: Ensure the Consul CA certificate is copied to the local certs directory - RedHat.
-          ansible.posix.synchronize:
-            src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
+          ansible.builtin.copy:
+            src: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
             dest: "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
+            remote_src: true
           when: ansible_os_family == 'RedHat'
 
         - name: Ensure certificate index is updated - Debian.
