@@ -62,13 +62,6 @@
         validate_certs: false
       register: nomad_server_certificate_results
 
-    - name: debug
-      debug:
-        msg: "{{ nomad_server_certificate_results.json.data.ca_chain[0] }}"
-
-    - name: end play
-      meta: end_play
-
     - name: Issue Nomad Client certificate
       ansible.builtin.uri:
         url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/issue/{{ vault_pki_int_nomad_role }}"
@@ -86,11 +79,11 @@
 
     - name: Set certificate facts
       ansible.builtin.set_fact:
-        nomad_tls_ca_chain: "{{ nomad_server_certificate_results.json.data.ca_chain | replace('\\n', '\n') }}"
-        nomad_tls_server_cert: "{{ nomad_server_certificate_results.json.data.certificate | replace('\\n', '\n') }}"
-        nomad_tls_server_key: "{{ nomad_server_certificate_results.json.data.private_key | replace('\\n', '\n') }}"
-        nomad_tls_client_cert: "{{ nomad_client_certificate_results.json.data.certificate | replace('\\n', '\n') }}"
-        nomad_tls_client_key: "{{ nomad_client_certificate_results.json.data.private_key | replace('\\n', '\n') }}"
+        nomad_tls_ca_chain: "{{ nomad_server_certificate_results.json.data.ca_chain[0] | replace('\\n', '\n') }}"
+        nomad_tls_server_cert: "{{ nomad_server_certificate_results.json.data.certificate[0] | replace('\\n', '\n') }}"
+        nomad_tls_server_key: "{{ nomad_server_certificate_results.json.data.private_key[0] | replace('\\n', '\n') }}"
+        nomad_tls_client_cert: "{{ nomad_client_certificate_results.json.data.certificate[0] | replace('\\n', '\n') }}"
+        nomad_tls_client_key: "{{ nomad_client_certificate_results.json.data.private_key[0] | replace('\\n', '\n') }}"
 
 - name: Ensure CA chain on nodes
   ansible.builtin.copy:
