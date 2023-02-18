@@ -4,8 +4,8 @@ tls {
 
 {% if ansible_hostname in groups['nomad_servers'] %}
 {% set certname = "server" %}
-{% else %}
-{% set certname = "server" %}
+{% elif ansible_hostname in groups['nomad_clients'] %}
+{% set certname = "client" %}
 {% endif %}
   ca_file   = "{{ nomad_tls_directory }}/ca.crt"
   cert_file = "{{ nomad_tls_directory }}/{{ certname }}.crt"
