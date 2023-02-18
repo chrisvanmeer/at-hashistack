@@ -1,6 +1,7 @@
 ---
 - name: GENERAL
   tags: nomad, vault, consul
+  run_once: true
   block:
     - name: GENERAL - Retrieve Secret ID from bootstrap output.
       ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
@@ -13,7 +14,6 @@
       ansible.builtin.set_fact:
         consul_acl_bootstrap_secret_id: "{{ consul_acl_bootstrap_output.stdout }}"
       failed_when: false
-  run_once: true
 
 - name: NOMAD
   tags: nomad
@@ -23,6 +23,7 @@
         path: "{{ nomad_systemd_service_file }}"
       register: nomad_systemd_service_file_details
     - name: NOMAD - Service cleanup.
+      when: nomad_systemd_service_file_details.stat.exists
       block:
         - name: NOMAD - Ensure service is stopped.
           ansible.builtin.systemd:
@@ -35,7 +36,6 @@
         - name: NOMAD - Reload systemd daemon.
           ansible.builtin.systemd:
             daemon_reload: true
-      when: nomad_systemd_service_file_details.stat.exists
     - name: NOMAD - Get all nomad config files.
       ansible.builtin.find:
         paths: "{{ nomad_etc_directory }}"
@@ -49,6 +49,7 @@
       loop_control:
         label: "{{ item.path }}"
     - name: NOMAD - Data directory mount points.
+      when: ansible_hostname in groups['nomad_clients']
       block:
         - name: NOMAD - Get all mount points that start with /opt/nomad/ and register this.
           ansible.builtin.shell: "/usr/bin/df -t tmpfs --output=target | grep '/opt/nomad'"
@@ -61,7 +62,6 @@
             state: unmounted
           with_items: "{{ nomad_mounts.stdout_lines }}"
           when: nomad_mounts is defined
-      when: ansible_hostname in groups['nomad_clients']
     - name: NOMAD - Delete nomad data directory.
       ansible.builtin.file:
         path: "{{ nomad_data_directory }}"
@@ -75,13 +75,15 @@
       environment:
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       run_once: true
-      ignore_errors: true
+      failed_when: false
+      changed_when: true
     - name: NOMAD - Remove Nomad Client policy from Consul.
       ansible.builtin.command: "{{ consul_binary }} acl policy delete -name {{ nomad_consul_client_service_name }}"
       environment:
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       run_once: true
-      ignore_errors: true
+      failed_when: false
+      changed_when: true
     - name: NOMAD - Get AccessorID of Nomad Server Token.
       ansible.builtin.shell: "{{ consul_binary }} acl token list | grep -B2 '{{ nomad_consul_server_token_description }}' | awk '/AccessorID/ {print $2}'"
       environment:
@@ -95,7 +97,8 @@
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       ansible.builtin.command: "{{ consul_binary }} acl token delete -id {{ consul_nomad_server_token.stdout }}"
       run_once: true
-      ignore_errors: true
+      failed_when: false
+      changed_when: true
     - name: NOMAD - Get AccessorID of Nomad Client Token.
       ansible.builtin.shell: "{{ consul_binary }} acl token list | grep -B2 '{{ nomad_consul_client_token_description }}' | awk '/AccessorID/ {print $2}'"
       environment:
@@ -109,7 +112,8 @@
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       ansible.builtin.command: "{{ consul_binary }} acl token delete -id {{ consul_nomad_client_token.stdout }}"
       run_once: true
-      ignore_errors: true
+      failed_when: false
+      changed_when: true
     - name: NOMAD - Remove Vault PKI role
       delegate_to: localhost
       run_once: true
@@ -159,6 +163,7 @@
         path: "{{ vault_systemd_service_file }}"
       register: vault_systemd_service_file_details
     - name: VAULT - Service cleanup.
+      when: vault_systemd_service_file_details.stat.exists
       block:
         - name: VAULT - Ensure service is stopped.
           ansible.builtin.systemd:
@@ -171,7 +176,6 @@
         - name: VAULT - Reload systemd daemon.
           ansible.builtin.systemd:
             daemon_reload: true
-      when: vault_systemd_service_file_details.stat.exists
     - name: VAULT - Get all vault config files.
       ansible.builtin.find:
         paths: "{{ vault_etc_directory }}"
@@ -204,11 +208,14 @@
       ansible.builtin.command: "{{ consul_binary }} kv delete -recurse {{ vault_service_name }}/"
       environment:
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+      failed_when: false
+      changed_when: true
     - name: VAULT - Remove Policy data from Consul.
       ansible.builtin.command: "{{ consul_binary }} acl policy delete -name {{ vault_consul_service_name }}"
       environment:
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
-      ignore_errors: true
+      failed_when: false
+      changed_when: true
       run_once: true
     - name: VAULT - Get AccessorID of Vault Token.
       ansible.builtin.shell: "{{ consul_binary }} acl token list | grep -B2 '{{ vault_consul_service_description }}' | awk '/AccessorID/ {print $2}'"
@@ -216,19 +223,20 @@
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       register: consul_vault_token
       run_once: true
-      ignore_errors: true
-      changed_when: false
+      failed_when: false
+      changed_when: true
     - name: VAULT - Delete Vault Token.
       environment:
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       ansible.builtin.command: "{{ consul_binary }} acl token delete -id {{ consul_vault_token.stdout }}"
       run_once: true
-      ignore_errors: true
+      failed_when: false
+      changed_when: true
     - name: VAULT - Delete Vault CA certs.
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
-      ignore_errors: true
+      failed_when: false
       loop:
         - "/etc/pki/ca-trust/source/anchors/{{ vault_pki_int_ca_share_filename }}"
         - "/usr/local/share/ca-certificates/{{ vault_pki_int_ca_share_filename }}"
@@ -243,6 +251,7 @@
         path: "{{ consul_systemd_service_file }}"
       register: consul_systemd_service_file_details
     - name: Service cleanup.
+      when: consul_systemd_service_file_details.stat.exists
       block:
         - name: CONSUL - Ensure service is stopped.
           ansible.builtin.systemd:
@@ -255,7 +264,6 @@
         - name: CONSUL - Reload systemd daemon.
           ansible.builtin.systemd:
             daemon_reload: true
-      when: consul_systemd_service_file_details.stat.exists
     - name: CONSUL - Get all consul config files.
       ansible.builtin.find:
         paths: "{{ consul_etc_directory }}"
@@ -278,6 +286,7 @@
         state: absent
 
 - name: DOCKER
+  when: ansible_hostname in groups['docker_clients']
   tags: docker
   become: false
   block:
@@ -304,11 +313,12 @@
         state: absent
         force_absent: true
       loop: "{{ docker_image_info.images | map(attribute='Id') | list }}"
-  when: ansible_hostname in groups['docker_clients']
 
 - name: TOKENS
   tags: tokens
   become: false
+  delegate_to: localhost
+  run_once: true
   block:
     - name: TOKENS - Get all local token files.
       ansible.builtin.find:
@@ -322,5 +332,3 @@
       with_items: "{{ token_files.files }}"
       loop_control:
         label: "{{ item.path }}"
-  delegate_to: localhost
-  run_once: true
