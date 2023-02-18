@@ -34,6 +34,7 @@
     - name: Consul - Ensure that the ACL is present in Consul.
       ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ item.service }} -rules @{{ item.policyfile }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       args:
         chdir: "{{ nomad_data_directory }}/"
@@ -47,6 +48,7 @@
     - name: Consul - Create ACL token for Nomad Servers.
       ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ nomad_consul_server_token_description }}' -policy-name {{ nomad_consul_server_service_name }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       changed_when: false
       register: nomad_server_token_creation_raw
@@ -62,6 +64,7 @@
     - name: Consul - Create ACL token for Nomad Clients.
       ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ nomad_consul_client_token_description }}' -policy-name {{ nomad_consul_client_service_name }}"
       environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
       changed_when: false
       register: nomad_client_token_creation_raw
@@ -96,7 +99,6 @@
 
 - name: Consul Policies - Configuration.
   block:
-
     - name: Consul - Retrieve Secret ID from Nomad Server token output.
       ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ nomad_consul_server_token_local_path }}"
       changed_when: false

@@ -1,14 +1,14 @@
 ---
 - name: Ensure TLS directory is present.
   become: true
-  file:
+  ansible.builtin.file:
     path: "{{ vault_tls_directory }}"
     state: directory
     recurse: true
   when: ansible_hostname in groups['vault_servers']
 
 - name: Check if CA file already exists.
-  stat:
+  ansible.builtin.stat:
     path: "{{ vault_ssl_ca_dest }}"
   register: ca_already_exists
   when: ansible_hostname in groups['vault_servers']
@@ -60,7 +60,7 @@
         mode: "0640"
 
     - name: Retrieve private key contents.
-      slurp:
+      ansible.posix.slurp:
         src: "{{ vault_ssl_key_dest }}"
       register: keyfile
 
@@ -72,12 +72,12 @@
       register: csr
 
     - name: Check whether certificate exists.
-      stat:
+      ansible.builtin.stat:
         path: "{{ vault_ssl_cert_dest }}"
       register: certificate_exists
 
     - name: Read existing certificate if exists.
-      slurp:
+      ansible.posix.slurp:
         src: "{{ vault_ssl_cert_dest }}"
       when: certificate_exists.stat.exists
       register: certificate
@@ -111,15 +111,15 @@
 - name: Retrieve Content.
   block:
     - name: Retrieve CA certificate contents.
-      slurp:
+      ansible.posix.slurp:
         src: "{{ vault_ssl_ca_dest }}"
       register: ca_certificate_slurp
     - name: Retrieve Server certificate contents.
-      slurp:
+      ansible.posix.slurp:
         src: "{{ vault_ssl_cert_dest }}"
       register: server_certificate_slurp
     - name: Retrieve Server key contents.
-      slurp:
+      ansible.posix.slurp:
         src: "{{ vault_ssl_key_dest }}"
       register: server_key_slurp
   delegate_to: "{{ groups['vault_servers'] | first }}"
