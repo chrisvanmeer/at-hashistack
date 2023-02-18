@@ -469,10 +469,7 @@ function nomad_checks() {
 
   ### Consul service for Focus
   if [ $SSUC -eq 1 ]; then
-    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
-    echo $NOMAD_JOB_CONSUL
-    exit 0
-    # NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" https://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
+    NOMAD_JOB_CONSUL=$(curl -s -H "X-Consul-Token: $CONSUL_TOKEN" http://${CONSUL_SERVERS[0]}:$CONSUL_PORT/v1/health/checks/$NOMAD_DEMO_SERVICE 2>/dev/null | jq -r ".[] | .Status" 2>/dev/null)
     if [ "$NOMAD_JOB_CONSUL" == "passing" ]; then
       STAT="HEALTHY"
       SUC=1
