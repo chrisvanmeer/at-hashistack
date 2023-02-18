@@ -86,10 +86,11 @@
 
     - name: CA - Ensure CA certificate and key are present on all other nodes - Debian.
       ansible.builtin.copy:
+        src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
         dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
-        content: "{{ consul_tls_ca_certificate_content }}"
         owner: "{{ consul_data_directory_owner }}"
         group: "{{ consul_data_directory_group }}"
+        remote_src: true
         mode: "0644"
       when:
         - consul_tls_ca_certificate_content is defined
@@ -98,10 +99,11 @@
 
     - name: CA - Ensure CA certificate and key are present on all other nodes - RedHat.
       ansible.builtin.copy:
+        src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
         dest: "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
-        content: "{{ consul_tls_ca_certificate_content }}"
         owner: "{{ consul_data_directory_owner }}"
         group: "{{ consul_data_directory_group }}"
+        remote_src: true
         mode: "0644"
       when:
         - consul_tls_ca_certificate_content is defined
