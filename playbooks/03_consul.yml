@@ -41,14 +41,14 @@
 
         - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
           ansible.builtin.copy:
-            src: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+            src: "/home/{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
             dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
             remote_src: true
           when: ansible_os_family == 'Debian'
 
         - name: Ensure the Consul CA certificate is copied to the local certs directory - RedHat.
           ansible.builtin.copy:
-            src: "{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+            src: "/home/{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
             dest: "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
             remote_src: true
           when: ansible_os_family == 'RedHat'
