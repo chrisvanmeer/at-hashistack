@@ -64,7 +64,7 @@
 
     - name: debug
       debug:
-        msg: "{{ nomad_server_certificate_results | from_json }}"
+        msg: "{{ nomad_server_certificate_results.json.data | from_json }}"
 
     - name: end play
       meta: end_play
