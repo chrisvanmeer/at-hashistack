@@ -546,7 +546,7 @@ function errors() {
   echo ""
 }
 
-#consul_checks
-#vault_checks
+consul_checks
+vault_checks
 nomad_checks
-#errors
+errors
