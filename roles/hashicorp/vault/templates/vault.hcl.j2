@@ -1,11 +1,5 @@
 ui = true
 
-storage "consul" {
-  address = "https://localhost:8501"
-  path    = "vault/"
-  # token   = "<VAULT_SERVICE_TOKEN_WILL_BE_FILLED_LATER>"
-}
-
 cluster_address = "{{ ansible_host }}:8201"
 api_address     = "{{ ansible_host }}:8200"
 
@@ -14,4 +8,18 @@ listener "tcp" {
   tls_cert_file      = "{{ vault_ssl_cert_dest }}"
   tls_key_file       = "{{ vault_ssl_key_dest }}"
   tls_client_ca_file = "{{ vault_ssl_ca_dest }}"
+}
+
+storage "raft" {
+  path    = "{{ vault_data_directory }}"
+  node_id = "{{ inventory_hostname }}"
+
+{% for host in groups["vault_servers"] %}
+  retry_join { leader_api_addr = "https://{{ host }}.node.{{ consul_domain }}:8200" }
+{% endfor %}
+}
+
+service_registration "consul" {
+  # token         = "<VAULT_SERVICE_TOKEN_WILL_BE_FILLED_LATER>"
+  scheme        = "https"
 }
