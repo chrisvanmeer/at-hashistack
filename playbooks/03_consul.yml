@@ -32,14 +32,14 @@
       delegate_to: consul1
       tags: consul-ca
       block:
-        - name: Ensure the Consul CA certificate is copied to the other nodes  - Debian.
+        - name: Ensure the Consul CA certificate is transferred to the management station - Debian.
           ansible.posix.synchronize:
             src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
             dest: "Consul_CA.pem"
           when: ansible_os_family == 'Debian'
           become: false
 
-        - name: Ensure the Consul CA certificate is copied to the other nodes - RedHat.
+        - name: Ensure the Consul CA certificate is transferred to the management station- RedHat.
           ansible.posix.synchronize:
             src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
             dest: "Consul_CA.pem"
