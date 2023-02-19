@@ -1,0 +1,121 @@
+---
+# Haal admin user op
+# Haal wachtwoord op
+# Log in met username/password
+# Sla token op
+# Maak policy aan voor snapshot
+# Maak approle auth method aan op pad snapshot
+# Maak een approle role aan
+# vault write auth/shapshot/role/backup \
+#   token_num_uses=1 \
+#   token_ttl=10m \
+#   token_max_ttl=10m \
+#   token_policies=pol-snapshot
+# Vraag role-id op en schrijf naar local disk
+# Vraag secret-id op en schrijf naar local disk
+# Maak directory structuur aan
+# Template de backup job
+# Cron de backup job
+
+# - name: Retrieve Secret ID from bootstrap output.
+#   ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
+#   changed_when: false
+#   become: false
+#   delegate_to: localhost
+#   run_once: true
+#   register: consul_acl_bootstrap_output
+#   tags: backup
+
+# - name: Read Snapshot policy
+#   ansible.builtin.shell: "{{ consul_binary }} acl policy create -read {{ consul_snapshot_policy_name }} | awk '/Name/ {print $2}'"
+#   environment:
+#     CONSUL_HTTP_ADDR: "{{ consul_address }}"
+#     CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_secret_id }}"
+#   changed_when: false
+#   register: consul_acl_policy_read_snapshot
+#   delegate_to: "{{ groups['consul_servers'] | first }}"
+#   run_once: true
+
+# - name: Snapshots ACL - Creation.
+#   delegate_to: "{{ groups['consul_servers'] | first }}"
+#   run_once: true
+#   block:
+#     - name: Ensure the Snapshot policy file is in place.
+#       ansible.builtin.copy:
+#         src: "{{ consul_snapshot_policy_file_local }}"
+#         dest: "{{ consul_snapshot_policy_file_remote }}"
+#         mode: 0644
+
+#     - name: Ensure that the policy is present in Consul.
+#       ansible.builtin.command: "{{ consul_binary }} acl policy create -name {{ consul_snapshot_policy_name }} -rules @{{ consul_snapshot_policy_file_name }}"
+#       environment:
+#         CONSUL_HTTP_ADDR: "{{ consul_address }}"
+#         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_output.stdout }}"
+#       args:
+#         chdir: "{{ consul_data_directory }}/"
+#       changed_when: false
+#       ignore_errors: true
+
+#     - name: Create ACL token using the above policy.
+#       ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ consul_snapshot_policy_description }}' -policy-name {{ consul_snapshot_policy_name }}"
+#       environment:
+#         CONSUL_HTTP_ADDR: "{{ consul_address }}"
+#         CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_output.stdout }}"
+#       changed_when: false
+#       register: snapshot_policy_token_output_raw
+
+#     - name: Cleanup the placed policy file.
+#       ansible.builtin.file:
+#         path: "{{ consul_snapshot_policy_file_remote }}"
+#         state: absent
+
+#     - name: Store bootstrap token local for safekeeping.
+#       ansible.builtin.copy:
+#         content: "{{ snapshot_policy_token_output_raw.stdout }}"
+#         dest: "{{ consul_snapshot_token_local_path }}"
+#         mode: 0644
+#       become: false
+#       delegate_to: localhost
+
+#   when:
+#     - not consul_acl_policy_read_snapshot.stdout == consul_snapshot_policy_name
+
+# - name: Retrieve Secret ID from bootstrap output.
+#   ansible.builtin.shell: "awk '/SecretID/ {print $2}' {{ consul_snapshot_token_local_path }}"
+#   changed_when: false
+#   become: false
+#   delegate_to: localhost
+#   register: snapshot_token_output
+#   run_once: true
+#   tags: backup
+
+# - name: Snapshot setup.
+#   block:
+#     - name: Ensure backup directories are present.
+#       ansible.builtin.file:
+#         path: "{{ item }}"
+#         state: directory
+#         mode: 0700
+#         owner: "{{ consul_snapshot_backup_location_owner }}"
+#         group: "{{ consul_snapshot_backup_location_group }}"
+#       with_items:
+#         - "{{ consul_snapshot_backup_main }}"
+#         - "{{ consul_snapshot_backup_location }}"
+
+#     - name: Ensure snapshot batch file is present.
+#       ansible.builtin.template:
+#         src: "{{ consul_snapshot_batchfile_template }}"
+#         dest: "{{ consul_snapshot_batchfile_location }}"
+#         owner: "{{ consul_snapshot_backup_location_owner }}"
+#         group: "{{ consul_snapshot_backup_location_group }}"
+#         mode: 0700
+
+#     - name: Ensure crontab for snapshot is present.
+#       ansible.builtin.cron:
+#         name: "Consul Snapshots"
+#         minute: "{{ consul_snapshot_cron_backup_minute }}"
+#         hour: "{{ consul_snapshot_cron_backup_hour }}"
+#         job: "{{ consul_snapshot_batchfile_location }} > /dev/null"
+#         user: "{{ consul_snapshot_backup_location_owner }}"
+#         state: present
+#   tags: backup
