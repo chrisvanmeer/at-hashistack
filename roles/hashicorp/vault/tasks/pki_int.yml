@@ -27,27 +27,24 @@
       ansible.builtin.set_fact:
         admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
 
-- name: Check if there is already a Intermediate PKI # noqa risky-shell-pipe
-  ansible.builtin.shell: "{{ vault_binary }} secrets list | grep {{ vault_pki_int_path }}"
-  environment:
-    VAULT_TOKEN: "{{ admin_token }}"
-  changed_when: false
-  ignore_errors: true
-  no_log: true
-  register: intermediate_check
-  when: ansible_hostname in groups['vault_servers']
-  delegate_to: "{{ groups['vault_servers'] | first }}"
-  run_once: true
-  tags: pki_int
+    - name: Register PKI mount results
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/sys/mounts/{{ vault_pki_int_path }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: GET
+        body_format: json
+        status_code:
+          - 200
+          - 204
+          - 400
+        validate_certs: false
+      register: pki_mount_results
 
-- name: Check if Intermediate certificate directory exists.
-  ansible.builtin.stat:
-    path: "{{ vault_pki_int_local_path }}"
-  register: pki_int_dir
-  when: ansible_hostname in groups['vault_servers']
-  delegate_to: "{{ groups['vault_servers'] | first }}"
-  run_once: true
-  tags: pki_int
+    - name: Check if Intermediate certificate directory exists.
+      ansible.builtin.stat:
+        path: "{{ vault_pki_int_local_path }}"
+      register: pki_int_dir
 
 - name: Prep
   when:
@@ -85,7 +82,7 @@
 
 - name: Ensure PKI
   when:
-    - intermediate_check.rc == 1
+    - pki_mount_results.status == 400
     - ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
@@ -146,35 +143,27 @@
         - "{{ vault_pki_int_pem_file }}"
         - "{{ vault_pki_int_policy_file }}"
 
-- name: Again check if there is a Intermediate PKI # noqa risky-shell-pipe
-  ansible.builtin.shell: "{{ vault_binary }} secrets list | grep {{ vault_pki_int_path }}"
-  environment:
-    VAULT_TOKEN: "{{ admin_token }}"
-  changed_when: false
-  ignore_errors: true
-  no_log: true
-  register: intermediate_check_two
+- name: Register PKI mount results
+  ansible.builtin.uri:
+    url: "{{ vault_address }}/v1/sys/mounts/{{ vault_pki_int_path }}"
+    headers:
+      X-Vault-Token: "{{ admin_token }}"
+    method: GET
+    body_format: json
+    status_code:
+      - 200
+      - 204
+      - 400
+    validate_certs: false
   when: ansible_hostname in groups['vault_servers']
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
-
-# - name: Vault - Retrieve issuers # noqa risky-shell-pipe
-#   when:
-#     - intermediate_check_two.rc == 0
-#     - ansible_hostname in groups['vault_servers']
-#   ansible.builtin.shell: "{{ vault_binary }} list -format=json {{ vault_pki_int_path }}/issuers | jq -r .[]"
-#   environment:
-#     VAULT_TOKEN: "{{ admin_token }}"
-#   changed_when: false
-#   register: pki_int_issuers
-#   delegate_to: "{{ groups['vault_servers'] | first }}"
-#   run_once: true
-#   tags: pki_int
+  register: pki_mount_results_repeat
 
 - name: Vault - Retrieve default issuer CA chain # noqa risky-shell-pipe
   when:
-    - intermediate_check_two.rc == 0
+    - pki_mount_results_repeat.status == 200
     - ansible_hostname in groups['vault_servers']
   ansible.builtin.shell: "{{ vault_binary }} read -format=json {{ vault_pki_int_path }}/issuer/default | jq -r .data.ca_chain | jq -r .[]"
   environment:
@@ -187,7 +176,7 @@
 
 - name: Update Certificate Chain
   when:
-    - intermediate_check_two.rc == 0
+    - pki_mount_results_repeat.status == 200
   tags: pki_int
   block:
     - name: Ensure the CA chain is copied to the local certs directory - Debian.
