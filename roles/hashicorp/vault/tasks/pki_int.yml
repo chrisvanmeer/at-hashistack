@@ -159,11 +159,11 @@
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: pki_int
-  register: pki_mount_results_repeat
+  register: pki_mount_results_retest
 
 - name: Vault - Retrieve default issuer CA chain # noqa risky-shell-pipe
   when:
-    - pki_mount_results_repeat.status == 200
+    - pki_mount_results_retest.status == 200
     - ansible_hostname in groups['vault_servers']
   ansible.builtin.shell: "{{ vault_binary }} read -format=json {{ vault_pki_int_path }}/issuer/default | jq -r .data.ca_chain | jq -r .[]"
   environment:
@@ -176,7 +176,7 @@
 
 - name: Update Certificate Chain
   when:
-    - pki_mount_results_repeat.status == 200
+    - pki_mount_results_retest.status == 200
   tags: pki_int
   block:
     - name: Ensure the CA chain is copied to the local certs directory - Debian.
