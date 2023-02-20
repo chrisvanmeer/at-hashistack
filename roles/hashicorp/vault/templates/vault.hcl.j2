@@ -1,8 +1,9 @@
-ui = true
+ui            = true
+disable_mlock = true
 
-cluster_name    = "InThePicture-Vault-Cluster"
-cluster_address = "https://{{ inventory_hostname }}:8201"
-api_address     = "https://{{ inventory_hostname }}:8200"
+cluster_name = "InThePicture-Vault-Cluster"
+cluster_addr = "https://{{ inventory_hostname }}:8201"
+api_addr     = "https://{{ inventory_hostname }}:8200"
 
 listener "tcp" {
   address            = "0.0.0.0:8200"
