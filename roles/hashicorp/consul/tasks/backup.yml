@@ -38,6 +38,16 @@
       changed_when: false
       ignore_errors: true
 
+    - name: Ensure that the operational policy is present in Consul.
+      ansible.builtin.command: "{{ consul_binary }} acl policy create -name operational -rules @{{ consul_snapshot_policy_file_name }}"
+      environment:
+        CONSUL_HTTP_ADDR: "{{ consul_address }}"
+        CONSUL_HTTP_TOKEN: "{{ consul_acl_bootstrap_output.stdout }}"
+      args:
+        chdir: "{{ consul_data_directory }}/"
+      changed_when: false
+      ignore_errors: true
+
     - name: Create ACL token using the above policy.
       ansible.builtin.command: "{{ consul_binary }} acl token create -description '{{ consul_snapshot_policy_description }}' -policy-name {{ consul_snapshot_policy_name }}"
       environment:

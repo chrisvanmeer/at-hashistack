@@ -71,8 +71,20 @@
         dest: "{{ nomad_client_policy_remote_file }}"
         mode: "0644"
 
+    - name: ACL - Ensure operational policy file is in place.
+      ansible.builtin.copy:
+        src: "{{ nomad_operational_policy_local_file }}"
+        dest: "{{ nomad_operational_policy_remote_file }}"
+        mode: "0644"
+
     - name: ACL - Ensure the client policy is registered.
-      ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_client_policy_description }}' {{ nomad_client_policy_name}} {{ nomad_client_policy_remote_file }}"
+      ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_client_policy_description }}' {{ nomad_client_policy_name }} {{ nomad_client_policy_remote_file }}"
+      environment:
+        NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
+        NOMAD_ADDR: "{{ nomad_address }}"
+
+    - name: ACL - Ensure the operational policy is registered.
+      ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_operational_policy_description }}' {{ nomad_operational_policy_name }} {{ nomad_operational_policy_remote_file }}"
       environment:
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
         NOMAD_ADDR: "{{ nomad_address }}"
@@ -83,12 +95,13 @@
         content: "This cluster was bootstrapped on {{ ansible_date_time.date }} {{ ansible_date_time.time }}{{ ansible_date_time.tz }}.\n"
         mode: 0644
 
-    - name: ACL - Cleanup nomad client policy file which is not needed anymore.
+    - name: ACL - Cleanup nomad client policy files which are not needed anymore.
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       with_items:
         - "{{ nomad_client_policy_remote_file }}"
+        - "{{ nomad_operational_policy_remote_file }}"
 
   when:
     - ansible_hostname in groups['nomad_servers']
