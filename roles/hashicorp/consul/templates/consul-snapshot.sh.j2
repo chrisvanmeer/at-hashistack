@@ -6,6 +6,3 @@ export CONSUL_HTTP_TOKEN={{ snapshot_token_output.stdout }}
 
 find {{ consul_snapshot_backup_location }} -name "*.{{ consul_snapshot_file_extension }}" -type f -mtime +{{ consul_snapshot_keep_days }} -exec rm {} \;
 {{ consul_binary }} snapshot save {{ consul_snapshot_backup_location }}/{{ consul_snapshot_filename }}_${ts}.{{ consul_snapshot_file_extension }}
-
-find {{ consul_kv_backup_location }} -name "*.{{ consul_kv_file_extension }}" -type f -mtime +{{ consul_kv_keep_days }} -exec rm {} \;
-{{ consul_binary }} kv export {{ consul_kv_path }} > {{ consul_kv_backup_location }}/{{ consul_kv_filename }}_${ts}.{{ consul_kv_file_extension }}

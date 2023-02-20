@@ -73,11 +73,5 @@ consul_snapshot_keep_days: "7"
 consul_snapshot_filename: "consul"
 consul_snapshot_file_extension: "snap"
 
-consul_kv_backup_location: "{{ consul_snapshot_backup_location }}"
-consul_kv_keep_days: "7"
-consul_kv_filename: "consul_vault_kv"
-consul_kv_file_extension: "json"
-consul_kv_path: "vault/"
-
 consul_snapshot_cron_backup_minute: "00"
 consul_snapshot_cron_backup_hour: "00"
