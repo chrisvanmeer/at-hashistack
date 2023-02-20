@@ -24,4 +24,8 @@ storage "raft" {
 service_registration "consul" {
   # token         = "<VAULT_SERVICE_TOKEN_WILL_BE_FILLED_LATER>"
   scheme        = "https"
+  address       = "127.0.0.1:8501"
+  tls_ca_file   = "{{ vault_ssl_ca_dest }}"
+  tls_cert_file = "{{ vault_ssl_cert_dest }}"
+  tls_key_file  = "{{ vault_ssl_key_dest }}"
 }
