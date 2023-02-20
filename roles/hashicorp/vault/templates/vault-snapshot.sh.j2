@@ -9,4 +9,4 @@ TOKEN=$({{ vault_binary}} write -format=json auth/{{vault_snapshot_approle_path}
 export VAULT_TOKEN=$TOKEN
 
 find {{ vault_snapshot_backup_location }} -name "*.{{ vault_snapshot_file_extension }}" -type f -mtime +{{ vault_snapshot_keep_days }} -exec rm {} \;
-{{ vault_binary }} operator snapshot save {{ vault_snapshot_backup_location }}/{{ vault_snapshot_filename }}_${ts}.{{ vault_snapshot_file_extension }}
+{{ vault_binary }} operator raft snapshot save {{ vault_snapshot_backup_location }}/{{ vault_snapshot_filename }}_${ts}.{{ vault_snapshot_file_extension }}
