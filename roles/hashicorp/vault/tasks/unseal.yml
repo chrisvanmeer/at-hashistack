@@ -54,9 +54,10 @@
         - "{{ vault_unseal_key_3 }}"
       no_log: true
       changed_when: false
-    - name: Pause for a couple of seconds
-      ansible.builtin.pause:
-        seconds: 3
+
+- name: Pause for a couple of seconds
+  ansible.builtin.pause:
+    seconds: 5
 
 - name: Unseal all other nodes
   when:
