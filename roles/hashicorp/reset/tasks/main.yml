@@ -275,6 +275,14 @@
       ansible.builtin.file:
         path: "{{ vault_snapshot_backup_main }}"
         state: absent
+    - name: Ensure .bashrc cleanup
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
+        search_string: "VAULT_ADDR"
+        state: absent
+      failed_when: false
+      delegate_to: localhost
+      run_once: true
 
 - name: CONSUL
   tags: consul
@@ -335,6 +343,14 @@
       loop:
         - "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
         - "/usr/local/share/ca-certificates/Consul_CA.pem"
+    - name: Ensure .bashrc cleanup
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
+        search_string: "CONSUL_HTTP_ADDR"
+        state: absent
+      failed_when: false
+      delegate_to: localhost
+      run_once: true
 
 - name: DOCKER
   when: ansible_hostname in groups['docker_clients']
