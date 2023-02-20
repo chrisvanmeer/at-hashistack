@@ -9,8 +9,8 @@
     - ../roles/hashicorp/nomad/vars/main.yml
 
   vars:
-    vault_consul_address: "https://vault.service.inthepicture.photo:8200"
     consul_consul_address: "consul.service.inthepicture.photo:8501"
+    vault_consul_address: "https://vault.service.inthepicture.photo:8200"
     nomad_consul_address: "https://nomad.service.inthepicture.photo:4646"
 
   tasks:
@@ -47,7 +47,7 @@
       ansible.builtin.set_fact:
         vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
 
-    - name: Ensure Consul and Nomad secrets engine
+    - name: Ensure Consul and Nomad secrets engine.
       ansible.builtin.uri:
         url: "{{ vault_consul_address }}/v1/sys/mounts/{{ item }}"
         headers:
@@ -62,7 +62,7 @@
         - consul
         - nomad
 
-    - name: Ensure Consul access configuration
+    - name: Ensure Consul access configuration.
       ansible.builtin.uri:
         url: "{{ vault_consul_address }}/v1/consul/config/access"
         headers:
@@ -75,7 +75,7 @@
           - 204
         validate_certs: false
 
-    - name: Ensure Consul operational role
+    - name: Ensure Consul operational role.
       ansible.builtin.uri:
         url: "{{ vault_consul_address }}/v1/consul/roles/operational"
         headers:
@@ -88,7 +88,7 @@
           - 204
         validate_certs: false
 
-    - name: Ensure Nomad access configuration
+    - name: Ensure Nomad access configuration.
       ansible.builtin.uri:
         url: "{{ vault_consul_address }}/v1/nomad/config/access"
         headers:
@@ -101,7 +101,7 @@
           - 204
         validate_certs: false
 
-    - name: Ensure Nomad operational role
+    - name: Ensure Nomad operational role.
       ansible.builtin.uri:
         url: "{{ vault_consul_address }}/v1/nomad/role/operational"
         headers:
