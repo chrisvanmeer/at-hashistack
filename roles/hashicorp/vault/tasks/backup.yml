@@ -31,6 +31,8 @@
     - name: Ensure snapshot policy
       ansible.builtin.uri:
         url: "{{ vault_address }}/v1/sys/policy/{{ vault_snapshot_policy_name }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
         method: POST
         body_format: json
         body: '{ "policy": "path \"sys/storage/raft/snapshot\" { capabilities = [\"read\"] }" }'
@@ -42,6 +44,8 @@
     - name: Ensure approle secrets engine
       ansible.builtin.uri:
         url: "{{ vault_address }}/v1/sys/mounts/{{ vault_snapshot_approle_path }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
         method: POST
         body_format: json
         body: '{ "type": "approle" }'
@@ -53,6 +57,8 @@
     - name: Ensure approle snapshot role
       ansible.builtin.uri:
         url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
         method: POST
         body_format: json
         body: '{ "token_policies": "[\"{{ vault_snapshot_policy_name }}\"]", "token_num_uses": 1, "token_ttl": "10m", "token_max_ttl": "10m" }'
@@ -64,6 +70,8 @@
     - name: Read approle Role ID
       ansible.builtin.uri:
         url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}/role-id"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
         method: GET
         body_format: json
         status_code:
@@ -75,6 +83,8 @@
     - name: Generate approle Secret ID
       ansible.builtin.uri:
         url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}/secret-id"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
         method: POST
         body_format: json
         status_code:
