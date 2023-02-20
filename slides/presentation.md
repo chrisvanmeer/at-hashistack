@@ -84,8 +84,8 @@ Runs and maintains the state of your apps
 # playbooks/05_nomad.yml
 
 - Creates `data` `log` and `tls` directories
-- Retrieves server and client certificates from Vault to encrypt HTTP + RPC traffic
-- Encrypts gossip traffic (`nomad operator keygen`)
+- Retrieves server and client certificates from Vault Intermediate (`http` + `rpc`)
+- Encrypts gossip (`serf`) traffic (`nomad operator keygen`)
 - Creates config file and systemd unit
 - Creates Consul policies for Nomad
   - Creates token and fills `nomad.hcl` config file
