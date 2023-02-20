@@ -58,6 +58,7 @@
 - name: Pause for a couple of seconds
   ansible.builtin.pause:
     seconds: 5
+  tags: unseal
 
 - name: Unseal all other nodes
   when:
