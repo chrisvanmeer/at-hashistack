@@ -98,7 +98,7 @@ vault_snapshot_policy_name: "pol-snapshot"
 vault_snapshot_approle_path: "snapshot"
 vault_snapshot_approle_role_name: "snapshot"
 vault_snapshot_token_name: "Token for snapshots"
-vault_snapshot_token_local_path: "{{ bootstrap_location }}/snapshot.vault.tokens"
+vault_snapshot_token_local_path: "{{ bootstrap_location }}/snapshot.vault.token"
 
 vault_snapshot_backup_main: "/srv/vault"
 vault_snapshot_backup_location: "/srv/vault/backups"
