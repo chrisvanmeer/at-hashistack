@@ -4,13 +4,13 @@
     admin_password: "{{ lookup('file', vault_admin_local_path) }}"
   delegate_to: localhost
   run_once: true
-  tags: pki_int
+  tags: backup
 
 - name: Login to Vault
   delegate_to: "{{ groups['vault_servers'] | first }}"
   when: ansible_hostname in groups['vault_servers']
   run_once: true
-  tags: pki_int
+  tags: backup
   block:
     - name: Retrieve client token.
       ansible.builtin.uri:
