@@ -58,6 +58,7 @@
 - name: Unseal all nodes
   when:
     - vault_is_sealed.stdout == "true"
+    - first_unseal is not defined
   tags: unseal
   block:
     - name: Ensure the Vault is unsealed.
