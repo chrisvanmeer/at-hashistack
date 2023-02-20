@@ -90,7 +90,7 @@
           X-Vault-Token: "{{ admin_token }}"
         method: POST
         body_format: json
-        body: '{ "token_policies": "["{{ vault_snapshot_policy_name }}"]", "token_num_uses": 2, "token_ttl": "10m", "token_max_ttl": "10m" }'
+        body: '{ "token_policies": "[\"{{ vault_snapshot_policy_name }}\"]", "token_num_uses": 2, "token_ttl": "10m", "token_max_ttl": "10m" }'
         status_code:
           - 200
           - 204
