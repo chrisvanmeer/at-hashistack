@@ -32,7 +32,7 @@
 
 - name: Backup
   ansible.builtin.include_tasks: backup.yml
-  tags: [never, backup]
+  tags: backup
 
 - name: Logging.
   ansible.builtin.include_tasks: logging.yml
