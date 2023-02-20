@@ -127,18 +127,11 @@
         vault_snapshot_role_id: "{{ snapshot_approle_role_id.json.data.role_id }}"
         vault_snapshot_secret_id: "{{ snapshot_approle_secret_id.json.data.secret_id }}"
 
-    - name: Store tokens local for safekeeping.
-      ansible.builtin.lineinfile:
-        line: |
-          Role ID - {{ snapshot_approle_role_id.json.data.role_id }}
-          Secret ID - {{ snapshot_approle_role_id.json.data.secret_id }}
-        dest: "{{ vault_snapshot_token_local_path }}"
-        mode: 0644
-      become: false
-      delegate_to: localhost
-
 - name: Snapshot setup
-  when: ansible_hostname in groups['vault_servers']
+  when:
+    - ansible_hostname in groups['vault_servers']
+    - vault_snapshot_role_id is defined
+    - vault_snapshot_secret_id is defined
   tags: backup
   block:
     - name: Ensure backup directories are present.
