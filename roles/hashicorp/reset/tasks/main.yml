@@ -169,6 +169,10 @@
         user: "{{ nomad_snapshot_backup_location_owner }}"
         state: absent
       failed_when: false
+    - name: NOMAD - Ensure backups are absent.
+      ansible.builtin.file:
+        path: "{{ nomad_snapshot_backup_main }}"
+        state: absent
 
 - name: VAULT
   tags: vault
@@ -267,6 +271,10 @@
         user: "{{ vault_snapshot_backup_location_owner }}"
         state: absent
       failed_when: false
+    - name: VAULT - Ensure backups are absent.
+      ansible.builtin.file:
+        path: "{{ vault_snapshot_backup_main }}"
+        state: absent
 
 - name: CONSUL
   tags: consul
@@ -315,6 +323,10 @@
         user: "{{ consul_snapshot_backup_location_owner }}"
         state: absent
       failed_when: false
+    - name: CONSUL - Ensure backups are absent.
+      ansible.builtin.file:
+        path: "{{ consul_snapshot_backup_main }}"
+        state: absent
 
 - name: DOCKER
   when: ansible_hostname in groups['docker_clients']
