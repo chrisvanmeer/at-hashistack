@@ -21,7 +21,7 @@
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
 
-- name: Initialize the Vault.
+- name: Initialize the leader Vault.
   ansible.builtin.command: "{{ vault_binary }} operator init"
   environment:
     VAULT_ADDR: "{{ vault_address }}"
