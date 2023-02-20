@@ -294,6 +294,14 @@
       ansible.builtin.file:
         path: "{{ consul_log_directory }}"
         state: absent
+    - name: CONSUL - Delete Consul CA cert.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      failed_when: false
+      loop:
+        - "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
+        - "/usr/local/share/ca-certificates/Consul_CA.pem"
 
 - name: DOCKER
   when: ansible_hostname in groups['docker_clients']
