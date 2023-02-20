@@ -9,7 +9,7 @@
   register: vault_is_sealed
   tags: unseal
 
-- name: Unseal
+- name: Unseal Prep
   when:
     - vault_is_sealed.stdout == "true"
   tags: unseal
@@ -34,6 +34,32 @@
         vault_unseal_key_3: "{{ token_file_output[2].split('Unseal Key 3: ')[1] }}"
       delegate_to: localhost
 
+- name: Unseal first node
+  when:
+    - vault_is_sealed.stdout == "true"
+    - first_unseal is defined
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
+  tags: unseal
+  block:
+    - name: Ensure the Vault is unsealed.
+      ansible.builtin.command: "{{ vault_binary }} operator unseal {{ item }}"
+      environment:
+        VAULT_ADDR: "{{ vault_address }}"
+        VAULT_CACERT: "{{ vault_ssl_ca_dest }}"
+        VAULT_SKIP_VERIFY: "true"
+      with_items:
+        - "{{ vault_unseal_key_1 }}"
+        - "{{ vault_unseal_key_2 }}"
+        - "{{ vault_unseal_key_3 }}"
+      no_log: true
+      changed_when: false
+
+- name: Unseal all nodes
+  when:
+    - vault_is_sealed.stdout == "true"
+  tags: unseal
+  block:
     - name: Ensure the Vault is unsealed.
       ansible.builtin.command: "{{ vault_binary }} operator unseal {{ item }}"
       environment:

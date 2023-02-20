@@ -52,3 +52,9 @@
   when:
     - vault_is_initialized.stdout == "false"
     - ansible_hostname != groups['vault_servers'] | first
+
+- name: Set fact of first unseal
+  ansible.builtin.set_fact:
+    first_unseal: true
+  when:
+    - vault_is_initialized.stdout == "false"
