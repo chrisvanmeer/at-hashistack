@@ -43,7 +43,7 @@
 
     - name: Ensure approle secrets engine
       ansible.builtin.uri:
-        url: "{{ vault_address }}/v1/sys/mounts/{{ vault_snapshot_approle_path }}"
+        url: "{{ vault_address }}/v1/sys/auth/{{ vault_snapshot_approle_path }}"
         headers:
           X-Vault-Token: "{{ admin_token }}"
         method: POST
