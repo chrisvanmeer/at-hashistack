@@ -52,7 +52,7 @@
         url: "{{ vault_consul_address }}/v1/sys/mounts/{{ item }}"
         headers:
           X-Vault-Token: "{{ vault_token }}"
-        method: GET
+        method: POST
         body_format: json
         body: '{ "type": "{{ item }}" }'
         status_code:
