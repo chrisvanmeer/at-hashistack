@@ -131,7 +131,6 @@
         - name: NOMAD - VAULT - Set fact of admin password
           ansible.builtin.set_fact:
             admin_password: "{{ lookup('file', vault_admin_local_path) }}"
-          failed_when: false
           ignore_errors: true
 
         - name: NOMAD - VAULT - Log in and retrieve client token
@@ -145,12 +144,12 @@
               - 204
             validate_certs: false
           register: vault_admin_login_response
-          failed_when: false
+          ignore_errors: true
 
         - name: NOMAD - VAULT - Set fact of client token
           ansible.builtin.set_fact:
             vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
-          failed_when: false
+          ignore_errors: true
 
         - name: NOMAD - VAULT - Ensure removal of Nomad cluster PKI role
           ansible.builtin.uri:
@@ -163,7 +162,7 @@
               - 200
               - 204
             validate_certs: false
-          failed_when: false
+          ignore_errors: true
     - name: NOMAD - Ensure crontab for snapshot is absent.
       ansible.builtin.cron:
         name: "Nomad Snapshots"
