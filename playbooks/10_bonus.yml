@@ -26,12 +26,6 @@
       become: false
       register: nomad_token
 
-    - name: debug consul token
-      debug: var=consul_token
-
-    - name: debug nomad token
-      debug: var=nomad_token
-
     - name: Create fact of admin password.
       ansible.builtin.set_fact:
         admin_password: "{{ lookup('file', vault_admin_local_path) }}"
@@ -75,7 +69,7 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "address": "{{ consul_consul_address }}", "scheme": "https", "token": "{{ consul_token }}" }'
+        body: '{ "address": "{{ consul_consul_address }}", "scheme": "https", "token": "{{ consul_token.stdout }}" }'
         status_code:
           - 200
           - 204
@@ -101,7 +95,7 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "address": "{{ nomad_consul_address }}", "token": "{{ nomad_token }}" }'
+        body: '{ "address": "{{ nomad_consul_address }}", "token": "{{ nomad_token.stdout }}" }'
         status_code:
           - 200
           - 204
