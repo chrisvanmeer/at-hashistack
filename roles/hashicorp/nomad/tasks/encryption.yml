@@ -47,7 +47,10 @@
         validate_certs: false
       failed_when: false
 
-    - name: Issue Nomad Server certificate
+- name: Request certificates
+  tags: encryption
+  block:
+    - name: Request Nomad Server certificates
       ansible.builtin.uri:
         url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/issue/{{ vault_pki_int_nomad_role }}"
         method: POST
@@ -61,7 +64,7 @@
         validate_certs: false
       register: nomad_server_certificate_results
 
-    - name: Issue Nomad Client certificate
+    - name: Request Nomad Client certificates
       ansible.builtin.uri:
         url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/issue/{{ vault_pki_int_nomad_role }}"
         method: POST
