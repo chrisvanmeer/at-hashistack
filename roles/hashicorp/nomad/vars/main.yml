@@ -55,6 +55,11 @@ nomad_client_policy_local_file: "files/nomad-client-policy.hcl"
 nomad_client_policy_remote_file: "{{ nomad_data_directory }}/nomad-client-policy.hcl"
 nomad_client_token_local_path: "{{ bootstrap_location }}/nomad-clients.nomad.token"
 
+nomad_operational_policy_name: "operational"
+nomad_operational_policy_description: "Policy for operational use"
+nomad_operational_policy_local_file: "files/nomad-operational-policy.hcl"
+nomad_operational_policy_remote_file: "{{ nomad_data_directory }}/nomad-operational-policy.hcl"
+
 nomad_snapshot_token_name: "Token for snapshots"
 nomad_snapshot_token_local_path: "{{ bootstrap_location }}/snapshot.nomad.token"
 nomad_snapshot_token_root_path: "/root/snapshot.nomad.token"

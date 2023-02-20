@@ -1,0 +1,115 @@
+---
+- name: Bonus
+  hosts: localhost
+  become: true
+
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+    - ../roles/hashicorp/vault/vars/main.yml
+    - ../roles/hashicorp/nomad/vars/main.yml
+
+  vars:
+    consul_consul_address: "consul.service.inthepicture.photo:8501"
+    vault_consul_address: "https://vault.service.inthepicture.photo:8200"
+    nomad_consul_address: "https://nomad.service.inthepicture.photo:4646"
+
+  tasks:
+    - name: Retrieve Consul token.
+      ansible.builtin.command: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
+      changed_when: false
+      become: false
+      register: consul_token
+
+    - name: Retrieve Nomad token.
+      ansible.builtin.command: "awk '/Secret ID/ {print $4}' {{ nomad_bootstrap_token_local_path }}"
+      changed_when: false
+      become: false
+      register: nomad_token
+
+    - name: Create fact of admin password.
+      ansible.builtin.set_fact:
+        admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+      become: false
+
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+    - name: Ensure Consul and Nomad secrets engine.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/sys/mounts/{{ item }}"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "type": "{{ item }}" }'
+        status_code:
+          - 200
+          - 204
+      loop:
+        - consul
+        - nomad
+
+    - name: Ensure Consul access configuration.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/consul/config/access"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "address": "{{ consul_consul_address }}", "scheme": "https", "token": "{{ consul_token.stdout }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure Consul operational role.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/consul/roles/operational"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "consul_policies": "operational" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure Nomad access configuration.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/nomad/config/access"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "address": "{{ nomad_consul_address }}", "token": "{{ nomad_token.stdout }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure Nomad operational role.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/nomad/role/operational"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "policies": "operational" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false

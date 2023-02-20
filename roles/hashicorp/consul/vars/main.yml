@@ -49,6 +49,12 @@ consul_agent_policy_name: "consul-agent"
 consul_agent_policy_description: "Token for Consul Agents"
 consul_agent_token_local_path: "{{ bootstrap_location }}/agent.consul.token"
 
+consul_operational_policy_file_name: "consul-operational-policy.hcl"
+consul_operational_policy_file_local: "files/{{ consul_operational_policy_file_name }}"
+consul_operational_policy_file_remote: "{{ consul_data_directory }}/{{ consul_operational_policy_file_name }}"
+consul_operational_policy_name: "operational"
+consul_operational_policy_description: "Policy for operational use"
+
 consul_dns_policy_file_name: "dns-request-policy.hcl"
 consul_dns_policy_file_local: "files/{{ consul_dns_policy_file_name }}"
 consul_dns_policy_file_remote: "{{ consul_data_directory }}/{{ consul_dns_policy_file_name }}"
