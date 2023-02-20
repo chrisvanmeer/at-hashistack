@@ -1,10 +1,100 @@
 ---
-# Haal admin user op
-# Haal wachtwoord op
-# Log in met username/password
-# Sla token op
-# Maak policy aan voor snapshot
-# Maak approle auth method aan op pad snapshot
+- name: Create fact of admin password.
+  ansible.builtin.set_fact:
+    admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+  delegate_to: localhost
+  run_once: true
+  tags: pki_int
+
+- name: Login to Vault
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  when: ansible_hostname in groups['vault_servers']
+  run_once: true
+  tags: pki_int
+  block:
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+    - name: Ensure snapshot policy
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/sys/policy/{{ vault_snapshot_policy_name }}"
+        method: POST
+        body_format: json
+        body: '{ "policy": "path \"sys/storage/raft/snapshot\" { capabilities = [\"read\"] }" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure approle secrets engine
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/sys/mounts/{{ vault_snapshot_approle_path }}"
+        method: POST
+        body_format: json
+        body: '{ "type": "approle" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure approle snapshot role
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}"
+        method: POST
+        body_format: json
+        body: '{ "token_policies": "[\"{{ vault_snapshot_policy_name }}\"]", "token_num_uses": 1, "token_ttl": "10m", "token_max_ttl": "10m" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Read approle Role ID
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}/role-id"
+        method: GET
+        body_format: json
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: snapshot_approle_role_id
+
+    - name: Generate approle Secret ID
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}/secret-id"
+        method: POST
+        body_format: json
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: snapshot_approle_secret_id
+
+    - name: Store tokens local for safekeeping.
+      ansible.builtin.lineinfile:
+        line: |
+          Role ID - {{ snapshot_approle_role_id.json.data.role_id }}
+          Secret ID - {{ snapshot_approle_role_id.json.data.secret_id }}
+        dest: "{{ vault_snapshot_token_local_path }}"
+        mode: 0644
+      become: false
+      delegate_to: localhost
+
+    - name: end play
+      meta: end_play
 # Maak een approle role aan
 # vault write auth/shapshot/role/backup \
 #   token_num_uses=1 \

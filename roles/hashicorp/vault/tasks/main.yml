@@ -28,8 +28,11 @@
 
 - name: PKI Intermediate CA.
   ansible.builtin.include_tasks: pki_int.yml
-  # when: ansible_hostname in groups['vault_servers']
   tags: pki_int
+
+- name: Backup
+  ansible.builtin.include_tasks: backup.yml
+  tags: [never, backup]
 
 - name: Logging.
   ansible.builtin.include_tasks: logging.yml
