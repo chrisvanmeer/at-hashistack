@@ -166,6 +166,7 @@
     - name: NOMAD - Ensure crontab for snapshot is absent.
       ansible.builtin.cron:
         name: "Nomad Snapshots"
+        user: "{{ nomad_snapshot_backup_location_owner }}"
         state: absent
       failed_when: false
 
@@ -263,6 +264,7 @@
     - name: VAULT - Ensure crontab for snapshot is absent.
       ansible.builtin.cron:
         name: "Vault Snapshots"
+        user: "{{ vault_snapshot_backup_location_owner }}"
         state: absent
       failed_when: false
 
@@ -310,6 +312,7 @@
     - name: CONSUL - Ensure crontab for snapshot is absent.
       ansible.builtin.cron:
         name: "Consul Snapshots"
+        user: "{{ consul_snapshot_backup_location_owner }}"
         state: absent
       failed_when: false
 
