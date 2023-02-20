@@ -36,13 +36,13 @@
 
 - name: Unseal first node
   when:
+    - ansible_hostname == groups['vault_servers'] | first
     - vault_is_sealed.stdout == "true"
-    - first_unseal is defined
   delegate_to: "{{ groups['vault_servers'] | first }}"
   run_once: true
   tags: unseal
   block:
-    - name: Ensure the Vault is unsealed.
+    - name: Ensure the first Vault is unsealed.
       ansible.builtin.command: "{{ vault_binary }} operator unseal {{ item }}"
       environment:
         VAULT_ADDR: "{{ vault_address }}"
@@ -54,14 +54,17 @@
         - "{{ vault_unseal_key_3 }}"
       no_log: true
       changed_when: false
+    - name: Pause for a couple of seconds
+      ansible.builtin.pause:
+        seconds: 3
 
-- name: Unseal all nodes
+- name: Unseal all other nodes
   when:
+    - ansible_hostname != groups['vault_servers'] | first
     - vault_is_sealed.stdout == "true"
-    - first_unseal is not defined
   tags: unseal
   block:
-    - name: Ensure the Vault is unsealed.
+    - name: Ensure the other Vault are unsealed.
       ansible.builtin.command: "{{ vault_binary }} operator unseal {{ item }}"
       environment:
         VAULT_ADDR: "{{ vault_address }}"
