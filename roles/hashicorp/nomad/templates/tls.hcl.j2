@@ -1,6 +1,6 @@
 tls {
-  http = true
-  rpc  = true
+  http      = true
+  rpc       = true
 
 {% if ansible_hostname in groups['nomad_servers'] %}
 {% set certname = "server" %}
