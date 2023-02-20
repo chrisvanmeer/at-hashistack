@@ -13,7 +13,7 @@
 
 - name: Generate a gossip encryption key.
   ansible.builtin.command:
-    cmd: nomad operator keygen
+    cmd: nomad operator gossip keyring generate
   register: gossip_encryption_key
   when: ansible_hostname in groups['nomad_servers']
   delegate_to: "{{ groups['nomad_servers'] | first }}"

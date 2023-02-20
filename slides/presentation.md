@@ -85,7 +85,7 @@ Runs and maintains the state of your apps
 
 - Creates `data` `log` and `tls` directories
 - Retrieves server and client certificates from Vault Intermediate (`http` + `rpc`)
-- Encrypts gossip (`serf`) traffic (`nomad operator keygen`)
+- Encrypts gossip (`serf`) traffic (`nomad operator gossip keyring generate`)
 - Creates config file and systemd unit
 - Creates Consul policies for Nomad
   - Creates token and fills `nomad.hcl` config file
