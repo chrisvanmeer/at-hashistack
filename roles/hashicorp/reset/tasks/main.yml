@@ -160,6 +160,11 @@
               - 204
             validate_certs: false
           failed_when: false
+    - name: NOMAD - Ensure crontab for snapshot is absent.
+      ansible.builtin.cron:
+        name: "Nomad Snapshots"
+        state: absent
+      failed_when: false
 
 - name: VAULT
   tags: vault
@@ -252,6 +257,11 @@
         - "/usr/local/share/ca-certificates/{{ vault_pki_int_ca_share_filename }}"
         - "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
         - "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
+    - name: VAULT - Ensure crontab for snapshot is absent.
+      ansible.builtin.cron:
+        name: "Vault Snapshots"
+        state: absent
+      failed_when: false
 
 - name: CONSUL
   tags: consul
@@ -294,6 +304,11 @@
       ansible.builtin.file:
         path: "{{ consul_log_directory }}"
         state: absent
+    - name: CONSUL - Ensure crontab for snapshot is absent.
+      ansible.builtin.cron:
+        name: "Consul Snapshots"
+        state: absent
+      failed_when: false
 
 - name: DOCKER
   when: ansible_hostname in groups['docker_clients']
@@ -301,24 +316,24 @@
   become: false
   block:
     - name: Get running containers
-      docker_host_info:
+      community.docker.docker_host_info:
         containers: true
       register: docker_container_info
 
     - name: Stop running containers
-      docker_container:
+      community.docker.docker_container:
         name: "{{ item }}"
         state: absent
       loop: "{{ docker_container_info.containers | map(attribute='Id') | list }}"
 
     - name: Get details of all images
-      docker_host_info:
+      community.docker.docker_host_info:
         images: true
         verbose_output: true
       register: docker_image_info
 
     - name: Remove all images
-      docker_image:
+      community.docker.docker_image:
         name: "{{ item }}"
         state: absent
         force_absent: true
