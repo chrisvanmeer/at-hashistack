@@ -26,6 +26,12 @@
       become: false
       register: nomad_token
 
+    - name: debug consul token
+      debug: var=consul_token
+
+    - name: debug nomad token
+      debug: var=nomad_token
+
     - name: Create fact of admin password.
       ansible.builtin.set_fact:
         admin_password: "{{ lookup('file', vault_admin_local_path) }}"
