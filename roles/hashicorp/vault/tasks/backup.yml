@@ -155,7 +155,7 @@
 
     - name: Ensure crontab for snapshot is present.
       ansible.builtin.cron:
-        name: "Consul Snapshots"
+        name: "Vault Snapshots"
         minute: "{{ vault_snapshot_cron_backup_minute }}"
         hour: "{{ vault_snapshot_cron_backup_hour }}"
         job: "{{ vault_snapshot_batchfile_location }} > /dev/null"
