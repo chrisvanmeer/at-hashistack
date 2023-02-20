@@ -1,0 +1,163 @@
+---
+- name: Create fact of admin password.
+  ansible.builtin.set_fact:
+    admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+  delegate_to: localhost
+  run_once: true
+  tags: backup
+
+- name: Login to Vault
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  when: ansible_hostname in groups['vault_servers']
+  run_once: true
+  tags: backup
+  block:
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        admin_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+- name: Check if there is already snapshot configuration
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  when: ansible_hostname in groups['vault_servers']
+  run_once: true
+  tags: backup
+  block:
+    - name: Ensure approle secrets engine
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/sys/auth/{{ vault_snapshot_approle_path }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: GET
+        body_format: json
+        body: '{ "type": "approle" }'
+        status_code:
+          - 200
+          - 204
+          - 400
+        validate_certs: false
+      register: snapshot_approle_mount_results
+
+- name: Ensure snapshot configuration
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  when:
+    - snapshot_approle_mount_results.status == 400
+    - ansible_hostname in groups['vault_servers']
+  run_once: true
+  tags: backup
+  block:
+    - name: Ensure snapshot policy
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/sys/policy/{{ vault_snapshot_policy_name }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: POST
+        body_format: json
+        body: '{ "policy": "path \"sys/storage/raft/snapshot\" { capabilities = [\"read\"] }" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure approle secrets engine
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/sys/auth/{{ vault_snapshot_approle_path }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: POST
+        body_format: json
+        body: '{ "type": "approle" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure approle snapshot role
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: POST
+        body_format: json
+        body: '{ "token_policies": "["{{ vault_snapshot_policy_name }}"]", "token_num_uses": 2, "token_ttl": "10m", "token_max_ttl": "10m" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Read approle Role ID
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}/role-id"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: GET
+        body_format: json
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: snapshot_approle_role_id
+
+    - name: Generate approle Secret ID
+      ansible.builtin.uri:
+        url: "{{ vault_address }}/v1/auth/{{ vault_snapshot_approle_path }}/role/{{ vault_snapshot_approle_role_name }}/secret-id"
+        headers:
+          X-Vault-Token: "{{ admin_token }}"
+        method: POST
+        body_format: json
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: snapshot_approle_secret_id
+
+    - name: Ensure approle facts
+      ansible.builtin.set_fact:
+        vault_snapshot_role_id: "{{ snapshot_approle_role_id.json.data.role_id }}"
+        vault_snapshot_secret_id: "{{ snapshot_approle_secret_id.json.data.secret_id }}"
+
+- name: Snapshot setup
+  when:
+    - ansible_hostname in groups['vault_servers']
+    - vault_snapshot_role_id is defined
+    - vault_snapshot_secret_id is defined
+  tags: backup
+  block:
+    - name: Ensure backup directories are present.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0700
+        owner: "{{ vault_snapshot_backup_location_owner }}"
+        group: "{{ vault_snapshot_backup_location_group }}"
+      with_items:
+        - "{{ vault_snapshot_backup_main }}"
+        - "{{ vault_snapshot_backup_location }}"
+
+    - name: Ensure snapshot batch file is present.
+      ansible.builtin.template:
+        src: "{{ vault_snapshot_batchfile_template }}"
+        dest: "{{ vault_snapshot_batchfile_location }}"
+        owner: "{{ vault_snapshot_backup_location_owner }}"
+        group: "{{ vault_snapshot_backup_location_group }}"
+        mode: 0700
+
+    - name: Ensure crontab for snapshot is present.
+      ansible.builtin.cron:
+        name: "Vault Snapshots"
+        minute: "{{ vault_snapshot_cron_backup_minute }}"
+        hour: "{{ vault_snapshot_cron_backup_hour }}"
+        job: "{{ vault_snapshot_batchfile_location }} > /dev/null"
+        user: "{{ vault_snapshot_backup_location_owner }}"
+        state: present

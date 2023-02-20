@@ -8,11 +8,11 @@ A work in progress
 2. `ansible-playbook playbooks/02_systemd-resolved.yml`
 3. `ansible-playbook playbooks/03_consul.yml`
 4. Open Firefox and navigate to <https://consul.service.inthepicture.photo:8501>  
-   This is handy to monitor the vault and nomad services while deploying.
+   This is handy to monitor the `vault` and `nomad` services while deploying.
 5. `ansible-playbook playbooks/04_vault.yml`
 6. `ansible-playbook playbooks/04_vault.yml --tags unseal`
-7. `source ~/.bashrc`
-8. `ansible-playbook playbooks/05_nomad`
+7. `ansible-playbook playbooks/05_nomad`
+8. `source ~/.bashrc`
 9. Run the aperture script to make sure everything is up and running: `./aperture.sh`
 
 ## URL's
@@ -21,4 +21,4 @@ A work in progress
 - <https://vault.service.inthepicture.photo:8200>
 - <https://nomad.service.inthepicture.photo:4646>
 
-Note that both Vault and Nomad are mTLS secured
+Note that Consul, Vault and Nomad are all mTLS secured

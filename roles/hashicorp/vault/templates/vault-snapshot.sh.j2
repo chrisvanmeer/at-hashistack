@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ts=$(date "+%Y%m%d%H%M%S")
+export VAULT_ADDR={{ vault_address }}
+ROLE_ID={{ vault_snapshot_role_id }}
+SECRET_ID={{ vault_snapshot_secret_id }}
+
+TOKEN=$({{ vault_binary}} write -format=json auth/{{vault_snapshot_approle_path}}/login role_id=$ROLE_ID secret_id=$SECRET_ID | jq -r .auth.client_token)
+export VAULT_TOKEN=$TOKEN
+
+find {{ vault_snapshot_backup_location }} -name "*.{{ vault_snapshot_file_extension }}" -type f -mtime +{{ vault_snapshot_keep_days }} -exec rm {} \;
+{{ vault_binary }} operator raft snapshot save {{ vault_snapshot_backup_location }}/{{ vault_snapshot_filename }}_${ts}.{{ vault_snapshot_file_extension }}

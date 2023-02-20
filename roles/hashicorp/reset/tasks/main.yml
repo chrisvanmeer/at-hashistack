@@ -131,6 +131,7 @@
         - name: NOMAD - VAULT - Set fact of admin password
           ansible.builtin.set_fact:
             admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+          ignore_errors: true
 
         - name: NOMAD - VAULT - Log in and retrieve client token
           ansible.builtin.uri:
@@ -143,10 +144,12 @@
               - 204
             validate_certs: false
           register: vault_admin_login_response
+          ignore_errors: true
 
         - name: NOMAD - VAULT - Set fact of client token
           ansible.builtin.set_fact:
             vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+          ignore_errors: true
 
         - name: NOMAD - VAULT - Ensure removal of Nomad cluster PKI role
           ansible.builtin.uri:
@@ -159,7 +162,25 @@
               - 200
               - 204
             validate_certs: false
-          failed_when: false
+          ignore_errors: true
+    - name: NOMAD - Ensure crontab for snapshot is absent.
+      ansible.builtin.cron:
+        name: "Nomad Snapshots"
+        user: "{{ nomad_snapshot_backup_location_owner }}"
+        state: absent
+      failed_when: false
+    - name: NOMAD - Ensure backups are absent.
+      ansible.builtin.file:
+        path: "{{ nomad_snapshot_backup_main }}"
+        state: absent
+    - name: Ensure .bashrc cleanup
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
+        search_string: "NOMAD_ADDR"
+        state: absent
+      failed_when: false
+      delegate_to: localhost
+      run_once: true
 
 - name: VAULT
   tags: vault
@@ -252,6 +273,24 @@
         - "/usr/local/share/ca-certificates/{{ vault_pki_int_ca_share_filename }}"
         - "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
         - "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
+    - name: VAULT - Ensure crontab for snapshot is absent.
+      ansible.builtin.cron:
+        name: "Vault Snapshots"
+        user: "{{ vault_snapshot_backup_location_owner }}"
+        state: absent
+      failed_when: false
+    - name: VAULT - Ensure backups are absent.
+      ansible.builtin.file:
+        path: "{{ vault_snapshot_backup_main }}"
+        state: absent
+    - name: Ensure .bashrc cleanup
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
+        search_string: "VAULT_ADDR"
+        state: absent
+      failed_when: false
+      delegate_to: localhost
+      run_once: true
 
 - name: CONSUL
   tags: consul
@@ -294,6 +333,16 @@
       ansible.builtin.file:
         path: "{{ consul_log_directory }}"
         state: absent
+    - name: CONSUL - Ensure crontab for snapshot is absent.
+      ansible.builtin.cron:
+        name: "Consul Snapshots"
+        user: "{{ consul_snapshot_backup_location_owner }}"
+        state: absent
+      failed_when: false
+    - name: CONSUL - Ensure backups are absent.
+      ansible.builtin.file:
+        path: "{{ consul_snapshot_backup_main }}"
+        state: absent
     - name: CONSUL - Delete Consul CA cert.
       ansible.builtin.file:
         path: "{{ item }}"
@@ -302,6 +351,14 @@
       loop:
         - "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
         - "/usr/local/share/ca-certificates/Consul_CA.pem"
+    - name: Ensure .bashrc cleanup
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
+        search_string: "CONSUL_HTTP_ADDR"
+        state: absent
+      failed_when: false
+      delegate_to: localhost
+      run_once: true
 
 - name: DOCKER
   when: ansible_hostname in groups['docker_clients']
@@ -309,24 +366,24 @@
   become: false
   block:
     - name: Get running containers
-      docker_host_info:
+      community.docker.docker_host_info:
         containers: true
       register: docker_container_info
 
     - name: Stop running containers
-      docker_container:
+      community.docker.docker_container:
         name: "{{ item }}"
         state: absent
       loop: "{{ docker_container_info.containers | map(attribute='Id') | list }}"
 
     - name: Get details of all images
-      docker_host_info:
+      community.docker.docker_host_info:
         images: true
         verbose_output: true
       register: docker_image_info
 
     - name: Remove all images
-      docker_image:
+      community.docker.docker_image:
         name: "{{ item }}"
         state: absent
         force_absent: true

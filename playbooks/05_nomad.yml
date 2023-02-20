@@ -15,3 +15,19 @@
 
   roles:
     - name: hashicorp/nomad
+
+- name: Nomad for desktop
+  hosts: localhost
+  connection: local
+  become: false
+
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+
+  tasks:
+    - name: Ensure Nomad address
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        search_string: "NOMAD_ADDR"
+        line: "export NOMAD_ADDR=https://nomad.service.{{ consul_domain }}:4646"
+      tags: bashrc

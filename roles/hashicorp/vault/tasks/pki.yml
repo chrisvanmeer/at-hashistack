@@ -14,6 +14,11 @@
   when: ansible_hostname in groups['vault_servers']
 
 - name: Create PKI infrastructure on first server.
+  when:
+    - not ca_already_exists.stat.exists
+    - ansible_hostname in groups['vault_servers']
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
   block:
     - name: Create private key.
       community.crypto.openssl_privatekey:
@@ -43,14 +48,13 @@
         provider: selfsigned
       register: ca_certificate
 
-  when:
-    - not ca_already_exists.stat.exists
-    - ansible_hostname in groups['vault_servers']
-  delegate_to: "{{ groups['vault_servers'] | first }}"
-  run_once: true
-
 ## Server certificate
-- name: Create PKI infrastructure on first server.
+- name: Create server certificates.
+  # delegate_to: "{{ groups['vault_servers'] | first }}"
+  when:
+    - ansible_hostname in groups['vault_servers']
+    - not ca_already_exists.stat.exists
+  # run_once: true
   block:
     - name: Create private key for server certificate.
       community.crypto.openssl_privatekey:
@@ -91,9 +95,10 @@
         ownca_privatekey_path: "{{ vault_ssl_ca_key_dest }}"
         ownca_not_after: "+1826d"
       register: certificate
+      delegate_to: "{{ groups['vault_servers'] | first }}"
 
     - name: Write certificate file.
-      copy:
+      ansible.builtin.copy:
         dest: "{{ vault_ssl_cert_dest }}"
         content: "{{ certificate.certificate }}"
         owner: "root"
@@ -101,67 +106,63 @@
         mode: "0644"
       when: certificate is changed
 
-  delegate_to: "{{ groups['vault_servers'] | first }}"
-  when:
-    - ansible_hostname in groups['vault_servers']
-    - not ca_already_exists.stat.exists
-  run_once: true
-
 ## Distribute the CA certificate to the rest of the environment
 - name: Retrieve Content.
+  delegate_to: "{{ groups['vault_servers'] | first }}"
+  run_once: true
   block:
     - name: Retrieve CA certificate contents.
       ansible.builtin.slurp:
         src: "{{ vault_ssl_ca_dest }}"
       register: ca_certificate_slurp
-    - name: Retrieve Server certificate contents.
-      ansible.builtin.slurp:
-        src: "{{ vault_ssl_cert_dest }}"
-      register: server_certificate_slurp
-    - name: Retrieve Server key contents.
-      ansible.builtin.slurp:
-        src: "{{ vault_ssl_key_dest }}"
-      register: server_key_slurp
-  delegate_to: "{{ groups['vault_servers'] | first }}"
-  run_once: true
+    # - name: Retrieve Server certificate contents.
+    #   ansible.builtin.slurp:
+    #     src: "{{ vault_ssl_cert_dest }}"
+    #   register: server_certificate_slurp
+    # - name: Retrieve Server key contents.
+    #   ansible.builtin.slurp:
+    #     src: "{{ vault_ssl_key_dest }}"
+    #   register: server_key_slurp
 
 - name: Place Content.
+  when:
+    - ansible_hostname in groups['vault_servers']
+    - ansible_hostname != groups['vault_servers'] | first
   block:
     - name: Place CA certificate in default location.
-      copy:
+      ansible.builtin.copy:
         dest: "{{ vault_ssl_ca_dest }}"
         content: "{{ ca_certificate_slurp.content | b64decode }}"
         owner: "root"
         group: "root"
         mode: "0644"
-    - name: Place certificate in default location.
-      copy:
-        dest: "{{ vault_ssl_cert_dest }}"
-        content: "{{ server_certificate_slurp.content | b64decode }}"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-    - name: Place key in default location.
-      copy:
-        dest: "{{ vault_ssl_key_dest }}"
-        content: "{{ server_key_slurp.content | b64decode }}"
-        owner: "root"
-        group: "vault"
-        mode: "0640"
-  when:
-    - ansible_hostname in groups['vault_servers']
-    - ansible_hostname != groups['vault_servers'] | first
+    # - name: Place certificate in default location.
+    #   ansible.builtin.copy:
+    #     dest: "{{ vault_ssl_cert_dest }}"
+    #     content: "{{ server_certificate_slurp.content | b64decode }}"
+    #     owner: "root"
+    #     group: "root"
+    #     mode: "0644"
+    # - name: Place key in default location.
+    #   ansible.builtin.copy:
+    #     dest: "{{ vault_ssl_key_dest }}"
+    #     content: "{{ server_key_slurp.content | b64decode }}"
+    #     owner: "root"
+    #     group: "vault"
+    #     mode: "0640"
 
 - name: Ensure the CA certificate is copied to the local certs directory - Debian.
   ansible.builtin.copy:
     dest: "/usr/local/share/ca-certificates/{{ vault_ssl_ca_share_filename }}"
     content: "{{ ca_certificate_slurp.content | b64decode }}"
+    mode: 0644
   when: ansible_os_family == 'Debian'
 
 - name: Ensure the CA certificate is copied to the local certs directory - RedHat.
   ansible.builtin.copy:
     dest: "/etc/pki/ca-trust/source/anchors/{{ vault_ssl_ca_share_filename }}"
     content: "{{ ca_certificate_slurp.content | b64decode }}"
+    mode: 0644
   when: ansible_os_family == 'RedHat'
 
 - name: Ensure certificate index is updated - Debian.
