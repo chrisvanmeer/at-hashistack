@@ -17,18 +17,18 @@
           register: consul_agent_ca_file_first
 
         - name: CA - CA Certificate creation.
-          block:
-            - name: CA - Create CA Certificate if not exists.
-              ansible.builtin.shell: "{{ consul_binary }} tls ca create -days {{ consul_tls_ca_certificate_days }}"
-              args:
-                chdir: "{{ consul_etc_directory }}"
-              register: consul_tls_ca_certificate_create
-
           when:
             - ansible_hostname in groups['consul_servers']
             - not consul_agent_ca_file_first.stat.exists
           delegate_to: "{{ groups['consul_servers'] | first }}"
           run_once: true
+          block:
+            - name: CA - Create CA Certificate if not exists.
+              ansible.builtin.command: "{{ consul_binary }} tls ca create -days {{ consul_tls_ca_certificate_days }}"
+              args:
+                chdir: "{{ consul_etc_directory }}"
+              changed_when: true
+              register: consul_tls_ca_certificate_create
 
         - name: CA - CA Certificate gathering.
           block:
