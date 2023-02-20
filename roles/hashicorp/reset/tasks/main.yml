@@ -173,6 +173,14 @@
       ansible.builtin.file:
         path: "{{ nomad_snapshot_backup_main }}"
         state: absent
+    - name: Ensure .bashrc cleanup
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
+        search_string: "NOMAD_ADDR"
+        state: absent
+      failed_when: false
+      delegate_to: localhost
+      run_once: true
 
 - name: VAULT
   tags: vault
