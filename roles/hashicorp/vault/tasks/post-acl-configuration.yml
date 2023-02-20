@@ -44,3 +44,11 @@
     - vault_is_initialized.stdout == "false"
   delegate_to: localhost
   run_once: true
+
+- name: Ensure Vault service is restarted on follower nodes.
+  ansible.builtin.service:
+    name: vault
+    state: restarted
+  when:
+    - vault_is_initialized.stdout == "false"
+    - ansible_hostname != groups['vault_servers'] | first
