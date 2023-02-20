@@ -9,9 +9,9 @@
     - ../roles/hashicorp/nomad/vars/main.yml
 
   vars:
-    vault_consul_address: https://vault.service.inthepicture.photo:8200
-    consul_consul_address: consul.service.inthepicture.photo:8501
-    nomad_consul_address: nomad.service.inthepicture.photo:4646
+    vault_consul_address: "https://vault.service.inthepicture.photo:8200"
+    consul_consul_address: "consul.service.inthepicture.photo:8501"
+    nomad_consul_address: "https://nomad.service.inthepicture.photo:4646"
 
   tasks:
     - name: Retrieve Consul token.
