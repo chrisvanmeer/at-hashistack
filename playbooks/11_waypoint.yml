@@ -1,0 +1,91 @@
+---
+- name: Waypoint
+  hosts:
+    - desktop
+    - nomad-servers
+    - nomad-clients
+  become: true
+
+  vars_files:
+    - ../roles/hashicorp/nomad/vars/main.yml
+
+  vars:
+    nomad_consul_address: "https://nomad.service.inthepicture.photo:4646"
+
+  roles:
+    - name: chrisvanmeer.hashicorp
+      vars:
+        hashicorp_product_selection:
+          - waypoint
+
+  tasks:
+    - name: Retrieve Nomad token # noqa run_once[task]
+      ansible.builtin.command: "awk '/Secret ID/ {print $4}' {{ nomad_bootstrap_token_local_path }}"
+      changed_when: false
+      become: false
+      register: nomad_token
+      delegate_to: localhost
+      run_once: true
+
+    - name: Ensure host volumes on disk
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ nomad_data_directory_owner }}"
+        group: "{{ nomad_data_directory_group }}"
+        mode: 0755
+      loop:
+        - "{{ nomad_data_directory }}/host-volumes/wp-server"
+        - "{{ nomad_data_directory }}/host-volumes/wp-runner"
+      when: ansible_hostname in groups["nomad-clients"]
+
+    - name: Ensure host volume configuration
+      ansible.builtin.lineinfile:
+        path: "{{ nomad_etc_directory }}/client.hcl"
+        search_string: "enabled = true"
+        line: |
+          enabled = true
+          host_volume {
+            wp-server-vol {
+              path = "/nomad/host-volumes/wp-server"
+              read_only = false
+            }
+            wp-runner-vol {
+              path = "/nomad/host-volumes/wp-runner"
+              read_only = false
+            }
+          }
+      notify:
+        - Restart Nomad
+        - Pause
+      when: ansible_hostname in groups["nomad-clients"]
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Ensure waypoint installation # noqa run_once[task]
+      ansible.builtin.command:
+        cmd: waypoint install -platform=nomad -accept-tos -nomad-host-volume=wp-server-vol -nomad-runner-host-volume=wp-runner-vol
+      environment:
+        NOMAD_TOKEN: "{{ nomad_token.stdout }}"
+        NOMAD_ADDR: "{{ nomad_consul_address }}"
+      register: waypoint_install_results
+      delegate_to: localhost
+      changed_when: false
+      run_once: true
+
+    - name: Output installation details # noqa run_once[task]
+      ansible.builtin.debug:
+        var: waypoint_install_results
+      when: waypoint_install_results is defined
+      delegate_to: localhost
+      run_once: true
+
+  handlers:
+    - name: Restart Nomad
+      ansible.builtin.service:
+        name: nomad
+        state: restarted
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 5
