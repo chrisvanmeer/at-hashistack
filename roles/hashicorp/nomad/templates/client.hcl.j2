@@ -20,10 +20,11 @@ acl {
 
 plugin "docker" {
   config {
-    endpoint = "unix:///var/run/docker.sock"
+    endpoint         = "unix:///var/run/docker.sock"
+    allow_privileged = true
     volumes {
-      enabled      = true
-      selinuxlabel = "z"
+      enabled        = true
+      selinuxlabel   = "z"
     }
   }
 }
