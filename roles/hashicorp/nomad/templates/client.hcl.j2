@@ -1,5 +1,17 @@
 client {
   enabled = true
+{% if waypoint_config is defined %}
+  host_volume {
+    wp-server-vol {
+      path = "{{ nomad_waypoint_server_volume_full_path }}"
+      read_only = false
+    }
+    wp-runner-vol {
+      path = "{{ nomad_waypoint_runner_volume_full_path }}"
+      read_only = false
+    }
+  }
+{% endif %}
 }
 
 acl {

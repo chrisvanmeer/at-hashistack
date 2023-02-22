@@ -35,26 +35,17 @@
         group: "{{ nomad_data_directory_group }}"
         mode: 0755
       loop:
-        - "{{ nomad_data_directory }}/host-volumes/wp-server"
-        - "{{ nomad_data_directory }}/host-volumes/wp-runner"
+        - "{{ nomad_waypoint_server_volume_full_path }}"
+        - "{{ nomad_waypoint_runner_volume_full_path }}"
       when: ansible_hostname in groups["nomad-clients"]
 
     - name: Ensure host volume configuration
-      ansible.builtin.lineinfile:
-        path: "{{ nomad_etc_directory }}/client.hcl"
-        search_string: "enabled = true"
-        line: |
-          enabled = true
-          host_volume {
-            wp-server-vol {
-              path = "/nomad/host-volumes/wp-server"
-              read_only = false
-            }
-            wp-runner-vol {
-              path = "/nomad/host-volumes/wp-runner"
-              read_only = false
-            }
-          }
+      ansible.builtin.template:
+        src: client.hcl.j2
+        dest: "{{ nomad_etc_directory }}/client.hcl"
+        mode: 0600
+      vars:
+        waypoint_config: true
       notify:
         - Restart Nomad
         - Pause
@@ -65,7 +56,7 @@
 
     - name: Ensure waypoint installation # noqa run_once[task]
       ansible.builtin.command:
-        cmd: waypoint install -platform=nomad -accept-tos -nomad-host-volume=wp-server-vol -nomad-runner-host-volume=wp-runner-vol
+        cmd: "waypoint install -platform=nomad -accept-tos -nomad-host-volume={{ nomad_waypoint_server_volume }} -nomad-runner-host-volume={{ nomad_waypoint_runner_volume }}"
       environment:
         NOMAD_TOKEN: "{{ nomad_token.stdout }}"
         NOMAD_ADDR: "{{ nomad_consul_address }}"
