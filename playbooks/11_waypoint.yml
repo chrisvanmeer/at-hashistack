@@ -41,7 +41,7 @@
 
     - name: Ensure host volume configuration
       ansible.builtin.template:
-        src: client.hcl.j2
+        src: "../roles/nomad/templates/client.hcl.j2"
         dest: "{{ nomad_etc_directory }}/client.hcl"
         mode: 0600
       vars:
