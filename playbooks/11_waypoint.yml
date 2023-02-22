@@ -6,6 +6,7 @@
   become: true
 
   vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
     - ../roles/hashicorp/nomad/vars/main.yml
 
   vars:
@@ -19,6 +20,14 @@
       when: ansible_hostname == "desktop"
 
   tasks:
+    - name: Retrieve Consul token # noqa run_once[task]
+      ansible.builtin.command: "awk '/SecretID/ {print $2}' {{ consul_bootstrap_token_local_path }}"
+      changed_when: false
+      become: false
+      register: consul_token
+      delegate_to: localhost
+      run_once: true
+
     - name: Retrieve Nomad token # noqa run_once[task]
       ansible.builtin.command: "awk '/Secret ID/ {print $4}' {{ nomad_bootstrap_token_local_path }}"
       changed_when: false
@@ -56,8 +65,9 @@
 
     - name: Ensure waypoint installation # noqa run_once[task]
       ansible.builtin.command:
-        cmd: "waypoint install -platform=nomad -accept-tos -nomad-host-volume={{ nomad_waypoint_server_volume }} -nomad-runner-host-volume={{ nomad_waypoint_runner_volume }}"
+        cmd: "waypoint install -platform=nomad -accept-tos -nomad-dc={{ datacenter_name }} -nomad-host-volume={{ nomad_waypoint_server_volume }} -nomad-runner-host-volume={{ nomad_waypoint_runner_volume }} -nomad-consul-datacenter={{ datacenter_name }} -nomad-consul-domain={{ consul_domain }}"
       environment:
+        CONSUL_HTTP_TOKEN: "{{ consul_token.stdout }}"
         NOMAD_TOKEN: "{{ nomad_token.stdout }}"
         NOMAD_ADDR: "{{ nomad_consul_address }}"
       register: waypoint_install_results
