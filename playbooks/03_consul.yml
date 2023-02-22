@@ -39,7 +39,7 @@
           when: ansible_os_family == 'Debian'
           become: false
 
-        - name: Ensure the Consul CA certificate is transferred to the management station- RedHat.
+        - name: Ensure the Consul CA certificate is transferred to the management station - RedHat.
           ansible.posix.synchronize:
             src: "{{ consul_etc_directory }}/consul-agent-ca.pem"
             dest: "Consul_CA.pem"
@@ -54,6 +54,7 @@
             src: "/home/{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
             dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
             remote_src: true
+            mode: 0644
           when: ansible_os_family == 'Debian'
 
         - name: Ensure the Consul CA certificate is copied to the local certs directory - RedHat.
@@ -61,6 +62,7 @@
             src: "/home/{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
             dest: "/etc/pki/ca-trust/source/anchors/Consul_CA.pem"
             remote_src: true
+            mode: 0644
           when: ansible_os_family == 'RedHat'
 
         - name: Ensure certificate index is updated - Debian.
@@ -70,3 +72,9 @@
         - name: Ensure certificate index is updated - RedHat.
           ansible.builtin.command: "/usr/bin/update-ca-trust extract"
           when: ansible_os_family == 'RedHat'
+
+    - name: Esnure cleanup of temp file
+      ansible.builtin.file:
+        path: "/home/{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
+        state: absent
+      tags: consul-ca
