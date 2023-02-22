@@ -107,7 +107,7 @@ Runs and maintains the state of your apps
 
 ## Consul
 
-- Port test on tcp/8500 (`netcat`)
+- Port test on tcp/8501 (`netcat`)
 - Check registration for Consul clients (`consul members`)
 - Checks the number of Vault and Nomad services registered (`curl`)
 
