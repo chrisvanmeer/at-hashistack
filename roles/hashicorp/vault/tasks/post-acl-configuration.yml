@@ -5,7 +5,7 @@
     enabled: true
     state: started
 
-- name: Take time for the service to get fully operational
+- name: Take time for the service to get fully operator
   ansible.builtin.pause:
     seconds: 10
 

@@ -71,10 +71,10 @@
         dest: "{{ nomad_client_policy_remote_file }}"
         mode: "0644"
 
-    - name: ACL - Ensure operational policy file is in place.
+    - name: ACL - Ensure operator policy file is in place.
       ansible.builtin.copy:
-        src: "{{ nomad_operational_policy_local_file }}"
-        dest: "{{ nomad_operational_policy_remote_file }}"
+        src: "{{ nomad_operator_policy_local_file }}"
+        dest: "{{ nomad_operator_policy_remote_file }}"
         mode: "0644"
 
     - name: ACL - Ensure the client policy is registered.
@@ -83,8 +83,8 @@
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
         NOMAD_ADDR: "{{ nomad_address }}"
 
-    - name: ACL - Ensure the operational policy is registered.
-      ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_operational_policy_description }}' {{ nomad_operational_policy_name }} {{ nomad_operational_policy_remote_file }}"
+    - name: ACL - Ensure the operator policy is registered.
+      ansible.builtin.command: "{{ nomad_binary }} acl policy apply -description '{{ nomad_operator_policy_description }}' {{ nomad_operator_policy_name }} {{ nomad_operator_policy_remote_file }}"
       environment:
         NOMAD_TOKEN: "{{ nomad_acl_bootstrap_secret_id }}"
         NOMAD_ADDR: "{{ nomad_address }}"
@@ -101,7 +101,7 @@
         state: absent
       with_items:
         - "{{ nomad_client_policy_remote_file }}"
-        - "{{ nomad_operational_policy_remote_file }}"
+        - "{{ nomad_operator_policy_remote_file }}"
 
   when:
     - ansible_hostname in groups['nomad_servers']
