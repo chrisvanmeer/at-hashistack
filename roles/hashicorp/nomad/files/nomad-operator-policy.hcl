@@ -1,5 +1,5 @@
 namespace "*" {
-  policy       = "write"
+  policy = "write"
 }
 
 agent {

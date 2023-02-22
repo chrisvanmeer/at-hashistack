@@ -75,14 +75,14 @@
           - 204
         validate_certs: false
 
-    - name: Ensure Consul operational role.
+    - name: Ensure Consul operator role.
       ansible.builtin.uri:
-        url: "{{ vault_consul_address }}/v1/consul/roles/operational"
+        url: "{{ vault_consul_address }}/v1/consul/roles/operator"
         headers:
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "consul_policies": "operational" }'
+        body: '{ "consul_policies": "operator", "ttl": "8h" }'
         status_code:
           - 200
           - 204
@@ -101,14 +101,27 @@
           - 204
         validate_certs: false
 
-    - name: Ensure Nomad operational role.
+    - name: Ensure Nomad lease ttl.
       ansible.builtin.uri:
-        url: "{{ vault_consul_address }}/v1/nomad/role/operational"
+        url: "{{ vault_consul_address }}/v1/nomad/config/lease"
         headers:
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "policies": "operational" }'
+        body: '{ "ttl": "8h" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure Nomad operator role.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/nomad/role/operator"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "policies": "operator" }'
         status_code:
           - 200
           - 204

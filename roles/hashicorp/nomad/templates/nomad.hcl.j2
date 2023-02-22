@@ -11,8 +11,8 @@ log_rotate_max_files = {{ nomad_log_rotate_max_files }}
 consul = {
   address = "https://127.0.0.1:8501"
 {% if ansible_hostname in groups['nomad_servers'] %}
-  token = "{{ nomad_server_token }}"
+  token   = "{{ nomad_server_token }}"
 {% elif ansible_hostname in groups['nomad_clients'] %}
-  token = "{{ nomad_client_token }}"
+  token   = "{{ nomad_client_token }}"
 {% endif %}
 }
