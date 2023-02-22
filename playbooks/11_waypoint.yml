@@ -65,7 +65,7 @@
 
     - name: Ensure waypoint installation # noqa run_once[task]
       ansible.builtin.command:
-        cmd: "waypoint install -platform=nomad -accept-tos -nomad-dc={{ datacenter_name }} -nomad-host-volume={{ nomad_waypoint_server_volume_name }} -nomad-runner-host-volume={{ nomad_waypoint_runner_volume_name }} -nomad-consul-datacenter={{ datacenter_name }} -nomad-consul-domain={{ consul_domain }}"
+        cmd: "waypoint install -plain -platform=nomad -accept-tos -nomad-dc={{ datacenter_name }} -nomad-host-volume={{ nomad_waypoint_server_volume_name }} -nomad-runner-host-volume={{ nomad_waypoint_runner_volume_name }} -nomad-consul-datacenter={{ datacenter_name }} -nomad-consul-domain={{ consul_domain }}"
       environment:
         CONSUL_HTTP_TOKEN: "{{ consul_token.stdout }}"
         NOMAD_TOKEN: "{{ nomad_token.stdout }}"

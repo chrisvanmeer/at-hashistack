@@ -2,11 +2,11 @@ client {
   enabled = true
 {% if waypoint_config is defined %}
   host_volume {
-    wp-server-vol {
+    {{ nomad_waypoint_server_volume_name }} {
       path = "{{ nomad_waypoint_server_volume_full_path }}"
       read_only = false
     }
-    wp-runner-vol {
+    {{ nomad_waypoint_runner_volume_name }} {
       path = "{{ nomad_waypoint_runner_volume_full_path }}"
       read_only = false
     }
