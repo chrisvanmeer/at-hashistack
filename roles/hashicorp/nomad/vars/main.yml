@@ -83,5 +83,7 @@ nomad_tls_ttl: "8766h"
 
 nomad_waypoint_server_volume: "wp-server"
 nomad_waypoint_runner_volume: "wp-runner"
+nomad_waypoint_server_volume_name: "{{ nomad_waypoint_server_volume }}-vol"
+nomad_waypoint_runner_volume_name: "{{ nomad_waypoint_runner_volume }}-vol"
 nomad_waypoint_server_volume_full_path: "{{ nomad_data_directory }}/host-volumes/{{ nomad_waypoint_server_volume }}"
 nomad_waypoint_runner_volume_full_path: "{{ nomad_data_directory }}/host-volumes/{{ nomad_waypoint_runner_volume }}"
