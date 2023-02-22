@@ -82,7 +82,7 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "consul_policies": "operator" }'
+        body: '{ "consul_policies": "operator", "ttl": "8h" }'
         status_code:
           - 200
           - 204
@@ -96,6 +96,19 @@
         method: POST
         body_format: json
         body: '{ "address": "{{ nomad_consul_address }}", "token": "{{ nomad_token.stdout }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
+    - name: Ensure Nomad lease ttl.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/nomad/config/lease"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "ttl": "8h" }'
         status_code:
           - 200
           - 204
