@@ -2,8 +2,7 @@
 - name: Waypoint
   hosts:
     - desktop
-    - nomad-servers
-    - nomad-clients
+    - nomad_clients
   become: true
 
   vars_files:
@@ -17,6 +16,7 @@
       vars:
         hashicorp_product_selection:
           - waypoint
+      when: ansible_hostname == "desktop"
 
   tasks:
     - name: Retrieve Nomad token # noqa run_once[task]
@@ -37,7 +37,7 @@
       loop:
         - "{{ nomad_waypoint_server_volume_full_path }}"
         - "{{ nomad_waypoint_runner_volume_full_path }}"
-      when: ansible_hostname in groups["nomad-clients"]
+      when: ansible_hostname in groups["nomad_clients"]
 
     - name: Ensure host volume configuration
       ansible.builtin.template:
@@ -49,7 +49,7 @@
       notify:
         - Restart Nomad
         - Pause
-      when: ansible_hostname in groups["nomad-clients"]
+      when: ansible_hostname in groups["nomad_clients"]
 
     - name: Flush handlers
       ansible.builtin.meta: flush_handlers
