@@ -5,6 +5,16 @@ date: AT Computing
 paging: Innovation Day - HashiCorp
 ---
 
+# $ whoami
+
+## Chris van Meer
+
+- Consultant and trainer at AT Computing
+- Certified HashiCorp Implementation Partner
+- Co-organizer Amsterdam HashiCorp User Group
+
+---
+
 # HashiStack Components
 
 Explained in a basic way
