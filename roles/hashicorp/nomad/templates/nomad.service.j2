@@ -5,17 +5,18 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+EnvironmentFile=-{{ nomad_etc_directory }}/nomad.env
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStart={{ nomad_binary }} agent -config {{ nomad_etc_directory }}
 KillMode=process
 KillSignal=SIGINT
-LimitNOFILE=infinity
+LimitNOFILE=65536
 LimitNPROC=infinity
 Restart=on-failure
 RestartSec=2
-StartLimitBurst=3
-StartLimitIntervalSec=10
+
 TasksMax=infinity
+OOMScoreAdjust=-1000
 
 [Install]
 WantedBy=multi-user.target

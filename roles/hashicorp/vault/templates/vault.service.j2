@@ -1,10 +1,13 @@
 [Unit]
 Description="HashiCorp Vault - A tool for managing secrets" Documentation=https://www.vaultproject.io/docs/
 Requires=network-online.target
-After=network-online.target ConditionFileNotEmpty={{ vault_etc_directory }}/vault.hcl StartLimitIntervalSec=60
+After=network-online.target
+ConditionFileNotEmpty={{ vault_etc_directory }}/vault.hcl StartLimitIntervalSec=60
 StartLimitBurst=3
 
 [Service]
+Type=notify
+EnvironmentFile={{ vault_etc_directory }}/vault.env
 User={{ vault_service_user }}
 Group={{ vault_service_group }}
 ProtectSystem=full
@@ -13,7 +16,6 @@ PrivateTmp=yes
 PrivateDevices=yes
 SecureBits=keep-caps
 AmbientCapabilities=CAP_IPC_LOCK
-Capabilities=CAP_IPC_LOCK+ep
 CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
 NoNewPrivileges=yes
 ExecStart={{ vault_binary }} server -config={{ vault_etc_directory }}
@@ -23,8 +25,6 @@ KillSignal=SIGINT
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
-StartLimitInterval=60
-StartLimitBurst=3
 LimitNOFILE=65536
 LimitMEMLOCK=infinity
 
