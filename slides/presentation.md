@@ -56,7 +56,6 @@ Runs and maintains the state of your apps
   - Creates Consul policies for Consul agents and DNS requests
 - Installs CNI plugin on Docker hosts
 - Creates a scheduled backup job (`consul operator snapshot`)
-- Disables Consul from unattended-upgrades (Debian only)
 
 ---
 
@@ -66,18 +65,17 @@ Runs and maintains the state of your apps
 - Creates config file and systemd unit
 - Creates a Root CA (`openssl`)
   - Distributes CA certificate to all machines (trust store)
-- Creates an Intermediate CA (`vault pki`)
-  - Distributes chain to all machines (trust store)
+- Uses Integrated Storage as it's storage backend
 - Creates Consul policy for Vault
   - Creates token and fills `vault.hcl` config file
 - Initializes and unseals Vault
-- Creates a raft cluster
 - Creates admin user
   - Revokes initial root token
+- Creates an Intermediate CA (`vault pki`)
+  - Distributes chain to all machines (trust store)
 - Creates custom logrotate for Vault log file
 - Enables auditing to both syslog and file
 - Creates a scheduled backup job (`vault operator raft snapshot`)
-- Disables Vault from unattended-upgrades (Debian only)
 
 ---
 
@@ -94,7 +92,6 @@ Runs and maintains the state of your apps
 - Writes policy to Vault for Nomad servers
   - Creates token and fills `vault.hcl` config file (in `nomad.d`)
 - Creates a scheduled backup job (`nomad operator snapshot`)
-- Disables Nomad from unattended-upgrades (Debian only)
 
 ---
 
