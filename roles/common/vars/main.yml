@@ -17,4 +17,3 @@ basic_packages:
   - vim
 
 bootstrap_location: "/home/{{ ansible_env.SUDO_USER }}/bootstrap-tokens"
-safeguard_location: "/home/{{ ansible_env.SUDO_USER }}/safeguard-config"

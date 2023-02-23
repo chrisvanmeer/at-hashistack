@@ -9,7 +9,6 @@
   run_once: true
   with_items:
     - "{{ bootstrap_location }}"
-    - "{{ safeguard_location }}"
 
 - name: Ensure basic packages.
   ansible.builtin.package:
@@ -20,25 +19,12 @@
   ansible.builtin.include_role:
     name: chrisvanmeer.hashicorp
 
-- name: Safeguard original HashiCorp config files.
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "{{ safeguard_location }}/{{ item | basename }}.org"
-    mode: 0644
-  become: false
-  run_once: true
-  delegate_to: localhost
-  with_items:
-    - "/etc/consul.d/consul.hcl"
-    - "/etc/vault.d/vault.hcl"
-    - "/etc/nomad.d/nomad.hcl"
-
 - name: Install autocompletion.
   ansible.builtin.command: "{{ item[0] }} -autocomplete-install"
   become: "{{ item[1] }}"
   with_nested:
     - "{{ hashicorp_product_selection }}"
-    - [ 'true', 'false' ]
+    - ["true", "false"]
   register: autoinstall_cmd
   changed_when:
     - not 'already installed' in autoinstall_cmd.stderr
