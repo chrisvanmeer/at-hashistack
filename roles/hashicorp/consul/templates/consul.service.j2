@@ -6,7 +6,7 @@ After=network-online.target
 ConditionFileNotEmpty={{ consul_etc_directory }}/consul.hcl
 
 [Service]
-EnvironmentFile=-{{ consul_etc_directory }}/consul.env
+EnvironmentFile={{ consul_etc_directory }}/consul.env
 User=consul
 Group=consul
 ExecStart={{ consul_binary }} agent -config-dir={{ consul_etc_directory }}/
