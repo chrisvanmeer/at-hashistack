@@ -5,6 +5,27 @@ date: AT Computing
 paging: Innovation Day - HashiCorp
 ---
 
+# Goal
+
+## Management
+
+- 1 management station (`desktop`)
+
+## Servers
+
+- 3 Consul servers (`consul1`, `consul2`, `consul3`)
+- 3 Vault servers (`vault1`, `vault2`, `vault3`)
+- 3 Nomad servers (`nomad1`, `nomad2`, `nomad3`)
+
+## Clients
+
+- 12 Consul clients (all machines except for `desktop`)
+- 3 Nomad clients (`docker1`, `docker2`, `docker3`) [1]
+
+[1]: Docker is pre-installed
+
+---
+
 # $ whoami
 
 ## Chris van Meer
@@ -136,5 +157,3 @@ Runs and maintains the state of your apps
 - Starts a test job and retrieves the output (`curl`)
 
 ---
-
-# Thank you
