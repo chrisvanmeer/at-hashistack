@@ -7,7 +7,7 @@ StartLimitBurst=3
 
 [Service]
 Type=notify
-EnvironmentFile={{ vault_etc_directory }}/vault.env
+EnvironmentFile=-{{ vault_etc_directory }}/vault.env
 User={{ vault_service_user }}
 Group={{ vault_service_group }}
 ProtectSystem=full
