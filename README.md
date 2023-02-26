@@ -31,6 +31,14 @@ slides presentation.md
 
 Note that if you want to use any of the binary commands on the management station, be sure to `source ~/.bashrc` after each product installation, since this also sets the correct environment variables.
 
+### Bonus
+
+There is a playbook included as a bonus that configures the Consul and Nomad secrets engine on Vault and enables an `operator` role for both of the secrets engines. This allows for reading dynamic Consul/Nomad ACL tokens.
+
+1. `ansible-playbook playbooks/10_bonus.yml`
+2. `vault read consul/creds/operator`
+3. `vault read nomad/creds/operator`
+
 ## URL's
 
 - <https://consul.service.inthepicture.photo:8501>
