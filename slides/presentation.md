@@ -22,6 +22,12 @@ paging: Innovation Day - HashiCorp
 - 12 Consul clients (all machines except for `desktop`)
 - 3 Nomad clients (`docker1`, `docker2`, `docker3`) [1]
 
+## TLS
+
+- Consul CA
+- OpenSSL Root CA
+- Vault Intermediate CA
+
 [1]: Docker is pre-installed
 
 ---
