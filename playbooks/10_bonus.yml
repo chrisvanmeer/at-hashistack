@@ -126,3 +126,16 @@
           - 200
           - 204
         validate_certs: false
+
+    - name: Ensure Vault operator policy.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/sys/policy/{{ vault_operator_policy_name }}"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "policy": "path \"nomad/creds/{{ nomad_operator_policy_name }}\" { capabilities = [\"read\"] }", "path \"consul/creds/{{ consul_operator_policy_name }}\" { capabilities = [\"read\"] }" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false

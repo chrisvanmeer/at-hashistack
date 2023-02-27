@@ -74,6 +74,8 @@ vault_admin_group_name: "grp-admin"
 vault_admin_username: "atcomputing"
 vault_admin_local_path: "{{ bootstrap_location }}/{{ vault_admin_username }}.vault.password"
 
+vault_operator_policy_name: "pol-operator"
+
 vault_pki_int_path: "pki_int"
 vault_pki_int_common_name: "In The Picture Intermediate CA"
 vault_pki_int_max_ttl: "43800h"
