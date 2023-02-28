@@ -39,6 +39,7 @@ paging: Innovation Day - HashiCorp
 - Consultant and trainer at AT Computing
 - Certified HashiCorp Implementation Partner
 - Co-organizer Amsterdam HashiCorp User Group
+- HashiCorp Ambassador 2023
 
 ---
 
