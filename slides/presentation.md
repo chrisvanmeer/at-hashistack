@@ -9,7 +9,7 @@ paging: Innovation Day - HashiCorp
 
 ## Management
 
-- 1 management station (`desktop`)
+- 1 management station (`desktop`) [1]
 
 ## Servers
 
@@ -20,7 +20,7 @@ paging: Innovation Day - HashiCorp
 ## Clients
 
 - 12 Consul clients (all machines except for `desktop`)
-- 3 Nomad clients (`docker1`, `docker2`, `docker3`) [1]
+- 3 Nomad clients (`docker1`, `docker2`, `docker3`) [2]
 
 ## TLS
 
@@ -28,7 +28,8 @@ paging: Innovation Day - HashiCorp
 - OpenSSL Root CA
 - Vault Intermediate CA
 
-[1]: Docker is pre-installed
+[1]: Ansible is pre-installed  
+[2]: Docker is pre-installed
 
 ---
 
