@@ -114,3 +114,6 @@ vault_snapshot_file_extension: "snap"
 
 vault_snapshot_cron_backup_minute: "00"
 vault_snapshot_cron_backup_hour: "00"
+
+vault_telemetry_disable_hostname: "true"
+vault_telemetry_prometheus_retention_time: "12h"

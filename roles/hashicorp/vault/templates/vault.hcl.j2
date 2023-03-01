@@ -27,3 +27,8 @@ service_registration "consul" {
   address       = "127.0.0.1:8501"
   tls_ca_file   = "{{ consul_etc_directory }}/consul-agent-ca.pem"
 }
+
+telemetry {
+  disable_hostname          = {{ vault_telemetry_disable_hostname }}
+  prometheus_retention_time = "{{ vault_telemetry_prometheus_retention_time }}"
+}
