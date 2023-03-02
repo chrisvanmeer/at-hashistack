@@ -145,7 +145,7 @@
         url: "{{ vault_consul_address }}/v1/auth/userpass/users/{{ operator_user }}"
         method: POST
         headers:
-          X-Vault-Token: "{{ vault_initial_root_token.stdout }}"
+          X-Vault-Token: "{{ vault_token }}"
         body_format: json
         body: '{ "password": "{{ operator_pass }}", "policies": "{{ vault_operator_policy_name }}" }'
         status_code:
