@@ -134,8 +134,24 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "policy": "path \"nomad/creds/{{ nomad_operator_policy_name }}\" { capabilities = [\"read\"] }", "path \"consul/creds/{{ consul_operator_policy_name }}\" { capabilities = [\"read\"] }" }'
+        body: '{ "policy": "path \"nomad/creds/{{ nomad_operator_policy_name }}\" { capabilities = [\"read\"] }" "path \"consul/creds/{{ consul_operator_policy_name }}\" { capabilities = [\"read\"] }" }'
         status_code:
           - 200
           - 204
         validate_certs: false
+
+    - name: Ensure operator user is created.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/auth/userpass/users/{{ operator_user }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_initial_root_token.stdout }}"
+        body_format: json
+        body: '{ "password": "{{ operator_pass }}", "policies": "{{ vault_operator_policy_name }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      vars:
+        operator_user: "operator"
+        operator_pass: "smooth"
