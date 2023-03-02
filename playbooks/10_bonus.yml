@@ -134,7 +134,7 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "policy": "path \"nomad/creds/{{ nomad_operator_policy_name }}\" { capabilities = [\"read\"] }" "path \"consul/creds/{{ consul_operator_policy_name }}\" { capabilities = [\"read\"] }" }'
+        body: '{ "policy": "path \"nomad/creds/{{ nomad_operator_policy_name }}\" {\n capabilities = [\"read\"]\n} \npath \"consul/creds/{{ consul_operator_policy_name }}\" {\n capabilities = [\"read\"]\n}" }'
         status_code:
           - 200
           - 204
