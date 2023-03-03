@@ -11,3 +11,21 @@ client {
 acl {
   enabled = true
 }
+
+ui {
+  enabled =  {{ nomad_server_ui_enabled }}
+
+  consul {
+    ui_url = "{{ nomad_server_ui_consul_ui_url }}"
+  }
+
+  vault {
+    ui_url = "{{ nomad_server_ui_vault_ui_url }}"
+  }
+
+  label {
+    text             = "{{ nomad_server_ui_label_text }}"
+    background_color = "{{ nomad_server_ui_label_background_color }}"
+    text_color       = "{{ nomad_server_ui_label_text_color }}"
+  }
+}

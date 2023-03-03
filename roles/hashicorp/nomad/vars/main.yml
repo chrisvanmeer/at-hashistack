@@ -81,6 +81,13 @@ nomad_tls_common_name_server: "server.global.nomad"
 nomad_tls_common_name_client: "client.global.nomad"
 nomad_tls_ttl: "8766h"
 
+nomad_server_ui_enabled: "true"
+nomad_server_ui_consul_ui_url: "https://consul.service.{{ consul_domain }}:8500/ui"
+nomad_server_ui_vault_ui_url: "https://vault.service.{{ consul_domain }}:8200/ui"
+nomad_server_ui_label_text: "In The Picture"
+nomad_server_ui_label_background_color: "palegreen"
+nomad_server_ui_label_text_color: "black"
+
 nomad_waypoint_server_volume: "wp-server"
 nomad_waypoint_runner_volume: "wp-runner"
 nomad_waypoint_server_volume_name: "{{ nomad_waypoint_server_volume }}-vol"
