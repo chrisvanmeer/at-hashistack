@@ -82,7 +82,7 @@ nomad_tls_common_name_client: "client.global.nomad"
 nomad_tls_ttl: "8766h"
 
 nomad_server_ui_enabled: "true"
-nomad_server_ui_consul_ui_url: "https://consul.service.{{ consul_domain }}:8500/ui"
+nomad_server_ui_consul_ui_url: "https://consul.service.{{ consul_domain }}:8501/ui"
 nomad_server_ui_vault_ui_url: "https://vault.service.{{ consul_domain }}:8200/ui"
 nomad_server_ui_label_text: "In The Picture"
 nomad_server_ui_label_background_color: "palegreen"
