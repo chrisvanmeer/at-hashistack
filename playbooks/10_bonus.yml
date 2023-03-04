@@ -127,6 +127,19 @@
           - 204
         validate_certs: false
 
+    - name: Ensure Nomad management role.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/nomad/role/management"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "type": "management" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+
     - name: Ensure Vault operator policy.
       ansible.builtin.uri:
         url: "{{ vault_consul_address }}/v1/sys/policy/{{ vault_operator_policy_name }}"
