@@ -63,14 +63,32 @@
           failed_when: false
           register: nomad_vault_accessors_raw
 
+        - name: NOMAD - VAULT - Lookup own accessor
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/auth/token/lookup-self"
+            method: LIST
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
+          register: nomad_vault_own_accessor
+
         - name: Debug
           ansible.builtin.debug:
             var: nomad_vault_accessors_raw
 
         - name: Debug2
           ansible.builtin.debug:
+            var: nomad_vault_own_accessor
+
+        - name: Debug3
+          ansible.builtin.debug:
             msg: "{{ item }}"
-          with_items: "{{ nomad_vault_accessors_raw.json.data.keys }}"
+          with_dict: "{{ nomad_vault_accessors_raw.json.data.keys }}"
 
         - name: End play
           ansible.builtin.meta: end_play
