@@ -79,24 +79,24 @@
 
         - name: Set fact of accessors
           ansible.builtin.set_fact:
-            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data }}"
+            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data | list }}"
 
         - name: Set fact of own accessor
           ansible.builtin.set_fact:
             nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor }}"
 
-        # - name: Debug
-        #   ansible.builtin.debug:
-        #     msg: "{{ nomad_vault_accessors }}"
+        - name: Debug
+          ansible.builtin.debug:
+            msg: "{{ nomad_vault_accessors }}"
 
         # - name: Debug2
         #   ansible.builtin.debug:
         #     var: nomad_vault_own_accessor
 
-        - name: Debug3
-          ansible.builtin.debug:
-            msg: "{{ item }}"
-          with_dict: "{{ nomad_vault_accessors }}"
+        # - name: Debug3
+        #   ansible.builtin.debug:
+        #     msg: "{{ item }}"
+        #   with_dict: "{{ nomad_vault_accessors.values() | list }}"
 
         - name: End play
           ansible.builtin.meta: end_play
