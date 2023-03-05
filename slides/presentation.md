@@ -71,7 +71,7 @@ Runs and maintains the state of your apps
   - Installs `consul`, `vault`, `nomad`, `boundary`
   - Adds `-autocomplete-install`
 - Installs pip modules
-  - `cryptography`, `docker`, `hvac`, `python-nomad`
+  - `cryptography`, `docker`, `hvac`, `jmespath`, `python-nomad`
 
 ---
 
