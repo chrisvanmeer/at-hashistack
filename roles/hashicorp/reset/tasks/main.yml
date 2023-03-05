@@ -83,20 +83,24 @@
 
         - name: Set fact of own accessor
           ansible.builtin.set_fact:
-            nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor }}"
+            nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor | list }}"
 
         # - name: Debug
         #   ansible.builtin.debug:
         #     msg: "{{ nomad_vault_accessors }}"
 
-        # - name: Debug2
-        #   ansible.builtin.debug:
-        #     var: nomad_vault_own_accessor
+        - name: Own accessor
+          ansible.builtin.debug:
+            var: nomad_vault_own_accessor
+
+        - name: Set fact of accessors minus own accessor
+          ansible.builtin.set_fact:
+            nomad_vault_accessors_new: "{{ nomad_vault_accessors | difference(nomad_vault_own_accessor) }}"
 
         - name: Debug3
           ansible.builtin.debug:
             msg: "{{ item }}"
-          loop: "{{ nomad_vault_accessors }}"
+          loop: "{{ nomad_vault_accessors_new }}"
 
         - name: End play
           ansible.builtin.meta: end_play
