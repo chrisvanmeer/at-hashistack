@@ -79,7 +79,7 @@
 
         - name: Set fact of accessors
           ansible.builtin.set_fact:
-            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data | from_json }}"
+            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data | json_query('keys') }}"
 
         - name: Set fact of own accessor
           ansible.builtin.set_fact:
