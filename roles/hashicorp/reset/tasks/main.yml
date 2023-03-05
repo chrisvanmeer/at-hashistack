@@ -79,7 +79,7 @@
 
         - name: Set fact of accessors
           ansible.builtin.set_fact:
-            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data.keys }}"
+            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data.['keys'] }}"
 
         - name: Set fact of own accessor
           ansible.builtin.set_fact:
@@ -87,7 +87,7 @@
 
         - name: Debug
           ansible.builtin.debug:
-            msg: "{{ lookup('ansible.utils.to_paths', nomad_vault_accessors) }}"
+            msg: "{{ nomad_vault_accessors }}"
 
         - name: End play
           ansible.builtin.meta: end_play
