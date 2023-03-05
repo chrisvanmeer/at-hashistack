@@ -87,7 +87,7 @@
 
         - name: Debug
           ansible.builtin.debug:
-            msg: "{{ nomad_vault_accessors | type_debug }}"
+            msg: "{{ nomad_vault_accessors | dict }}"
 
         - name: End play
           ansible.builtin.meta: end_play
