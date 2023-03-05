@@ -79,7 +79,7 @@
 
         - name: Set fact of accessors
           ansible.builtin.set_fact:
-            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data.keys.values() | list }}"
+            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data.keys }}"
 
         - name: Set fact of own accessor
           ansible.builtin.set_fact:
@@ -87,7 +87,10 @@
 
         - name: Debug
           ansible.builtin.debug:
-            var: nomad_vault_accessors
+            msg: "{{ nomad_vault_accessors | get_type }}"
+
+        - name: End play
+          ansible.builtin.meta: end_play
 
         - name: Debug2
           ansible.builtin.debug:
@@ -97,9 +100,6 @@
           ansible.builtin.debug:
             msg: "{{ item }}"
           with_dict: "{{ nomad_vault_accessors_raw.json.data.keys }}"
-
-        - name: End play
-          ansible.builtin.meta: end_play
 
         - name: NOMAD - VAULT - Revoke all tokens through accessor
           ansible.builtin.uri:
