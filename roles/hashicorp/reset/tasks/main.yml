@@ -85,48 +85,32 @@
           ansible.builtin.set_fact:
             nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor }}"
 
-        # - name: Debug
-        #   ansible.builtin.debug:
-        #     msg: "{{ nomad_vault_accessors }}"
-
-        - name: Own accessor
-          ansible.builtin.debug:
-            var: nomad_vault_own_accessor
-
         - name: Set fact of accessors minus own accessor
           ansible.builtin.set_fact:
             nomad_vault_accessors_new: "{{ nomad_vault_accessors | difference(nomad_vault_own_accessor) }}"
 
-        - name: Debug3
-          ansible.builtin.debug:
-            msg: "{{ item }}"
-          loop: "{{ nomad_vault_accessors_new }}"
-
-        - name: End play
-          ansible.builtin.meta: end_play
-
         - name: NOMAD - VAULT - Revoke all tokens through accessor
           ansible.builtin.uri:
-            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
-            method: DELETE
+            url: "{{ active_vault_address }}/v1/auth/token/revoke-accessor"
+            method: POST
             headers:
               X-Vault-Token: "{{ vault_token }}"
             body_format: json
-            body: '{ "password": "{{ admin_password }}" }'
+            body: '{ "accessor": "{{ item }}" }'
             status_code:
               - 200
               - 204
             validate_certs: false
           failed_when: false
+          loop: "{{ nomad_vault_accessors_new }}"
 
         - name: NOMAD - VAULT - Remove operator user
           ansible.builtin.uri:
-            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            url: "{{ active_vault_address }}/v1/auth/userpass/users/operator"
             method: DELETE
             headers:
               X-Vault-Token: "{{ vault_token }}"
             body_format: json
-            body: '{ "password": "{{ admin_password }}" }'
             status_code:
               - 200
               - 204
@@ -135,12 +119,11 @@
 
         - name: NOMAD - VAULT - Remove operator policy
           ansible.builtin.uri:
-            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            url: "{{ active_vault_address }}/v1/sys/policy/{{ vault_operator_policy_name }}"
             method: DELETE
             headers:
               X-Vault-Token: "{{ vault_token }}"
             body_format: json
-            body: '{ "password": "{{ admin_password }}" }'
             status_code:
               - 200
               - 204
@@ -149,17 +132,19 @@
 
         - name: NOMAD - VAULT - Disable Consul and Nomad secrets egine
           ansible.builtin.uri:
-            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            url: "{{ active_vault_address }}/v1/sys/mounts/{{ item }}"
             method: DELETE
             headers:
               X-Vault-Token: "{{ vault_token }}"
             body_format: json
-            body: '{ "password": "{{ admin_password }}" }'
             status_code:
               - 200
               - 204
             validate_certs: false
           failed_when: false
+          loop:
+            - consul
+            - nomad
 
         - name: NOMAD - VAULT - Ensure removal of Nomad cluster PKI role
           ansible.builtin.uri:
