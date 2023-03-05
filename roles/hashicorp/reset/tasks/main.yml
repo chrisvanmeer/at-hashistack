@@ -83,7 +83,7 @@
 
         - name: Set fact of own accessor
           ansible.builtin.set_fact:
-            nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor | list }}"
+            nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor }}"
 
         # - name: Debug
         #   ansible.builtin.debug:
