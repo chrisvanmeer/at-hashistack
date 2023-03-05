@@ -18,6 +18,126 @@
 - name: NOMAD
   tags: nomad
   block:
+    - name: NOMAD - VAULT cleanup
+      delegate_to: localhost
+      run_once: true
+      block:
+        - name: NOMAD - VAULT - Set fact of active Vault
+          ansible.builtin.set_fact:
+            active_vault_address: "https://active.vault.service.{{ consul_domain }}:8200"
+
+        - name: NOMAD - VAULT - Set fact of admin password
+          ansible.builtin.set_fact:
+            admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+          failed_when: false
+
+        - name: NOMAD - VAULT - Log in and retrieve client token
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+            method: POST
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          register: vault_admin_login_response
+          failed_when: false
+
+        - name: NOMAD - VAULT - Set fact of client token
+          ansible.builtin.set_fact:
+            vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+          failed_when: false
+
+        - name: NOMAD - VAULT - List all accessors
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/auth/token/accessors"
+            method: LIST
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
+          register: nomad_vault_accessors_raw
+
+        - name: Debug
+          ansible.builtin.debug:
+            var: nomad_vault_accessors_raw
+
+        - name: End play
+          ansible.builtin.meta: end_play
+
+        - name: NOMAD - VAULT - Revoke all tokens through accessor
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            method: DELETE
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
+
+        - name: NOMAD - VAULT - Remove operator user
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            method: DELETE
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
+
+        - name: NOMAD - VAULT - Remove operator policy
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            method: DELETE
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
+
+        - name: NOMAD - VAULT - Disable Consul and Nomad secrets egine
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            method: DELETE
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
+
+        - name: NOMAD - VAULT - Ensure removal of Nomad cluster PKI role
+          ansible.builtin.uri:
+            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
+            method: DELETE
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            body_format: json
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          failed_when: false
     - name: NOMAD - Get service file details.
       ansible.builtin.stat:
         path: "{{ nomad_systemd_service_file }}"
@@ -120,49 +240,6 @@
       run_once: true
       failed_when: false
       changed_when: true
-    - name: NOMAD - Remove Vault PKI role
-      delegate_to: localhost
-      run_once: true
-      block:
-        - name: NOMAD - VAULT - Set fact of active Vault
-          ansible.builtin.set_fact:
-            active_vault_address: "https://active.vault.service.{{ consul_domain }}:8200"
-
-        - name: NOMAD - VAULT - Set fact of admin password
-          ansible.builtin.set_fact:
-            admin_password: "{{ lookup('file', vault_admin_local_path) }}"
-          ignore_errors: true
-
-        - name: NOMAD - VAULT - Log in and retrieve client token
-          ansible.builtin.uri:
-            url: "{{ active_vault_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
-            method: POST
-            body_format: json
-            body: '{ "password": "{{ admin_password }}" }'
-            status_code:
-              - 200
-              - 204
-            validate_certs: false
-          register: vault_admin_login_response
-          ignore_errors: true
-
-        - name: NOMAD - VAULT - Set fact of client token
-          ansible.builtin.set_fact:
-            vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
-          ignore_errors: true
-
-        - name: NOMAD - VAULT - Ensure removal of Nomad cluster PKI role
-          ansible.builtin.uri:
-            url: "{{ active_vault_address }}/v1/{{ vault_pki_int_path }}/roles/{{ vault_pki_int_nomad_role }}"
-            method: DELETE
-            headers:
-              X-Vault-Token: "{{ vault_token }}"
-            body_format: json
-            status_code:
-              - 200
-              - 204
-            validate_certs: false
-          ignore_errors: true
     - name: NOMAD - Ensure crontab for snapshot is absent.
       ansible.builtin.cron:
         name: "Nomad Snapshots"
