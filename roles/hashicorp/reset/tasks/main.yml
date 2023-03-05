@@ -70,7 +70,7 @@
         - name: Debug2
           ansible.builtin.debug:
             msg: "{{ item }}"
-          loop: "{{ nomad_vault_accessors_raw.json.data.keys }}"
+          with_items: "{{ nomad_vault_accessors_raw.json.data.keys }}"
 
         - name: End play
           ansible.builtin.meta: end_play
