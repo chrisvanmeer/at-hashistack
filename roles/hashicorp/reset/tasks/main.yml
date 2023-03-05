@@ -75,21 +75,19 @@
               - 204
             validate_certs: false
           failed_when: false
-          register: nomad_vault_own_accessor
+          register: nomad_vault_own_accessor_raw
 
-        # - name: NOMAD - VAULT - Lookup own accessor
-        #   ansible.builtin.command:
-        #     cmd: "{{ vault_binary }} token lookup -format=json"
-        #   environment:
-        #     VAULT_ADDR: "{{ active_vault_address }}"
-        #     VAULT_TOKEN: "{{ vault_token }}"
-        #   changed_when: false
-        #   failed_when: false
-        #   register: nomad_vault_own_accessor
+        - name: Set fact of accessors
+          ansible.builtin.set_fact:
+            nomad_vault_accessors: "{{ nomad_vault_accessors_raw.json.data.keys }}"
+
+        - name: Set fact of own accessor
+          ansible.builtin.set_fact:
+            nomad_vault_own_accessor: "{{ nomad_vault_own_accessor_raw.json.data.accessor }}"
 
         - name: Debug
           ansible.builtin.debug:
-            var: nomad_vault_accessors_raw
+            var: nomad_vault_accessors
 
         - name: Debug2
           ansible.builtin.debug:
