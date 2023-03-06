@@ -3,3 +3,9 @@
   ansible.builtin.service:
     name: systemd-resolved
     state: restarted
+
+- name: Restart docker
+  ansible.builtin.service:
+    name: docker.service
+    state: restarted
+  when: ansible_hostname in groups['docker_clients']
