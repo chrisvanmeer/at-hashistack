@@ -1,6 +1,5 @@
 ---
 hashicorp_product_selection:
-  - boundary
   - consul
   - nomad
   - vault
