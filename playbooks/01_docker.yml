@@ -1,0 +1,11 @@
+- name: Ensure Docker CE
+  hosts: docker_clients
+  become: true
+
+  vars:
+    pip_install_packages:
+      - name: docker
+
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker
