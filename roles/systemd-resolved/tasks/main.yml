@@ -2,6 +2,7 @@
   ansible.builtin.package:
     name: systemd-resolved
     state: present
+  when: ansible_os_family == 'RedHat'
 
 - name: Ensure configuration directory
   ansible.builtin.file:
