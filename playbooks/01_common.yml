@@ -14,3 +14,14 @@
   roles:
     - name: geerlingguy.pip
     - name: common
+
+  pre_tasks:
+    - name: Ensure package cache update - Debian.
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Ensure package cache update - RedHat.
+      ansible.builtin.dnf:
+        update_cache: true
+      when: ansible_os_family == 'RedHat'

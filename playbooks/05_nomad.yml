@@ -28,6 +28,6 @@
     - name: Ensure Nomad address
       ansible.builtin.lineinfile:
         path: "{{ ansible_env.HOME }}/.bashrc"
-        search_string: "NOMAD_ADDR"
+        regexp: "NOMAD_ADDR"
         line: "export NOMAD_ADDR=https://nomad.service.{{ consul_domain }}:4646"
       tags: bashrc

@@ -273,7 +273,7 @@
     - name: Ensure .bashrc cleanup
       ansible.builtin.lineinfile:
         path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
-        search_string: "NOMAD_ADDR"
+        regexp: "NOMAD_ADDR"
         state: absent
       failed_when: false
       delegate_to: localhost
@@ -383,7 +383,7 @@
     - name: Ensure .bashrc cleanup
       ansible.builtin.lineinfile:
         path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
-        search_string: "VAULT_ADDR"
+        regexp: "VAULT_ADDR"
         state: absent
       failed_when: false
       delegate_to: localhost
@@ -451,7 +451,7 @@
     - name: Ensure .bashrc cleanup
       ansible.builtin.lineinfile:
         path: "/home/{{ ansible_env.SUDO_USER }}/.bashrc"
-        search_string: "CONSUL_HTTP_ADDR"
+        regexp: "CONSUL_HTTP_ADDR"
         state: absent
       failed_when: false
       delegate_to: localhost
