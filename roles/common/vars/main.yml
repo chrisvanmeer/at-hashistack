@@ -11,7 +11,6 @@ basic_packages:
   - jq
   - lynx
   - nmap
-  - mysql
   - tree
   - vim
 
