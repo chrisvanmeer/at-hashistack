@@ -1,15 +1,4 @@
 ---
-- name: Ensure local directories.
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    mode: 0755
-  delegate_to: localhost
-  become: false
-  run_once: true
-  with_items:
-    - "{{ bootstrap_location }}"
-
 - name: Ensure basic packages.
   ansible.builtin.package:
     name: "{{ basic_packages }}"
@@ -31,3 +20,14 @@
   failed_when:
     - autoinstall_cmd.rc != 0
     - not 'already installed' in autoinstall_cmd.stderr
+
+- name: Ensure local directories.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  delegate_to: localhost
+  become: false
+  run_once: true
+  with_items:
+    - "{{ bootstrap_location }}"
