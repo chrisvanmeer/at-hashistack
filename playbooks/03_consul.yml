@@ -52,7 +52,7 @@
         - name: Ensure the Consul CA certificate is copied to the local certs directory - Debian.
           ansible.builtin.copy:
             src: "/home/{{ ansible_env.SUDO_USER }}/Consul_CA.pem"
-            dest: "/usr/local/share/ca-certificates/Consul_CA.pem"
+            dest: "/usr/local/share/ca-certificates/Consul_CA.crt"
             remote_src: true
             mode: 0644
           when: ansible_os_family == 'Debian'
