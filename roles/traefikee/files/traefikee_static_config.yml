@@ -1,0 +1,40 @@
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      middlewares:
+        - hsts@traefikee
+      tls: {}
+  ping:
+    address: ":8082"
+
+metrics:
+  prometheus: {}
+
+api:
+  dashboard: true
+  insecure: true
+
+log:
+  format: json
+  filePath: "/var/log/traefikee/traefikee.log"
+  level: DEBUG
+
+accessLog:
+  format: json
+  filePath: "/var/log/traefikee/access.log"
+
+ping:
+  entryPoint: ping
+
+providers:
+  file:
+    filename: traefikee_dynamic_config.yml

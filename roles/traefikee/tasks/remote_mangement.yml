@@ -31,3 +31,14 @@
     chdir: "{{ ansible_user_dir }}"
   delegate_to: localhost
   become: false
+
+- name: Ensure configuration on management station
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_user_dir }}/{{ item }}"
+    mode: 0644
+  delegate_to: localhost
+  become: false
+  with_items:
+    - traefikee_static_config.yml
+    - traefikee_dynamic_config.yml

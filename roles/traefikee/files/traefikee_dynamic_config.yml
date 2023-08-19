@@ -1,0 +1,16 @@
+http:
+  middlewares:
+    hsts:
+      headers:
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+  serversTransports:
+    skiptls:
+      insecureSkipVerify: true
+
+tls:
+  options:
+    default:
+      sniStrict: true
+      minVersion: VersionTLS12
