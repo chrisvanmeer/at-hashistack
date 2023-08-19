@@ -28,4 +28,4 @@
 
 - name: Set proxy token fact
   ansible.builtin.set_fact:
-    traefikee_proxy_token: "{{ _traefikee_proxy_token.stdout | b64decode }}"
+    traefikee_proxy_token: "{{ _traefikee_proxy_token.content | b64decode }}"

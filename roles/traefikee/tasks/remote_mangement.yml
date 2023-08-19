@@ -18,7 +18,7 @@
 - name: Transfer cluster configuration
   ansible.builtin.copy:
     dest: "{{ ansible_user_dir }}/config.yaml"
-    content: "{{ traefikee_cluster_configuration | base64decode }}"
+    content: "{{ traefikee_cluster_configuration.content | base64decode }}"
     mode: 0644
   delegate_to: localhost
   become: false
