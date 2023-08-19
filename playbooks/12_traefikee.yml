@@ -2,7 +2,7 @@
 - name: Install Traefik Enterprise
   hosts:
     - desktop
-    - traefik_servers
+    - traefikee_servers
   become: true
 
   roles:

@@ -2,6 +2,8 @@
 - name: Set fact of license environment variable
   ansible.builtin.set_fact:
     traefikee_license_key: "{{ lookup('ansible.builtin.env', 'TRAEFIKEE_LICENSE', default=Undefined) }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: Assert that the license key has been set
   ansible.builtin.assert:
