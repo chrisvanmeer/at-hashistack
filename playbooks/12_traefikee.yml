@@ -1,0 +1,9 @@
+---
+- name: Install Traefik Enterprise
+  hosts:
+    - desktop
+    - traefik_servers
+  become: true
+
+  roles:
+    - traefikee

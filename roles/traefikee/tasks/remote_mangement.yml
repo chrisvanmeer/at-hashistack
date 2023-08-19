@@ -1,0 +1,33 @@
+---
+- name: Export cluster configuration from controller
+  ansible.builtin.shell:
+    cmd: traefikee generate credentials --onpremise.hosts="{{ ansible_host }}" --cluster=default --socket="/opt/traefikee/run/teectl.sock" > config.yaml
+  changed_when: true
+  environment:
+    chdir: "{{ ansible_user_dir }}"
+  delegate_to: "{{ groups['traefikee_controllers'] | first }}"
+  run_once: true
+
+- name: Read cluster configuration
+  ansible.builtin.slurp:
+    src: "{{ ansible_user_dir }}/config.yaml"
+  delegate_to: "{{ groups['traefikee_controllers'] | first }}"
+  run_once: true
+  register: traefikee_cluster_configuration
+
+- name: Transfer cluster configuration
+  ansible.builtin.copy:
+    dest: "{{ ansible_user_dir }}/config.yaml"
+    content: "{{ traefikee_cluster_configuration | base64decode }}"
+    mode: 0644
+  delegate_to: localhost
+  become: false
+
+- name: Import cluster configuration into management station
+  ansible.builtin.command:
+    cmd: teectl cluster import --file="config.yaml"
+  changed_when: false
+  environment:
+    chdir: "{{ ansible_user_dir }}"
+  delegate_to: localhost
+  become: false

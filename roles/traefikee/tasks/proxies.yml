@@ -1,0 +1,21 @@
+---
+- name: Ensure environment file
+  ansible.builtin.template:
+    src: proxies.env.j2
+    dest: /opt/traefikee/proxies.env
+    owner: "{{ traefikee_user_name }}"
+    group: "{{ traefikee_group_name }}"
+    mode: 0640
+
+- name: Ensure systemd unit file
+  ansible.builtin.copy:
+    src: traefikee-proxy.service
+    dest: /etc/systemd/system/traefikee-proxy.service
+    mode: 0644
+
+- name: Ensure systemd service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    service: traefikee-proxy.service
+    state: started
+    enabled: true

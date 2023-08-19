@@ -1,0 +1,32 @@
+---
+- name: Ensure traefikee group
+  ansible.builtin.group:
+    name: "{{ traefikee_group_name }}"
+    state: present
+    gid: "{{ traefikee_group_gid }}"
+
+- name: Ensure traefikee user
+  ansible.builtin.user:
+    name: "{{ traefikee_user_name }}"
+    uid: "{{ traefikee_user_gid }}"
+    group: "{{ traefikee_group_name }}"
+    home: "{{ traefikee_base_dir }}"
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Ensure directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ traefikee_user_name }}"
+    group: "{{ traefikee_group_name }}"
+    mode: 0700
+  with_items:
+    - "{{ traefikee_base_dir }}"
+    - "{{ traefikee_log_dir }}"
+
+- name: Ensure random plugin registry token
+  ansible.builtin.set_fact:
+    traefikee_plugin_token: "{{ lookup('community.general.random_string', length=32, base64=true) }}"
+  delegate_to: localhost
+  run_once: true

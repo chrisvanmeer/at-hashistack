@@ -1,0 +1,21 @@
+---
+- name: Ensure environment file
+  ansible.builtin.template:
+    src: registry.env.j2
+    dest: /opt/traefikee/registry.env
+    owner: "{{ traefikee_user_name }}"
+    group: "{{ traefikee_group_name }}"
+    mode: 0640
+
+- name: Ensure systemd unit file
+  ansible.builtin.copy:
+    src: traefikee-plugin-registry.service
+    dest: /etc/systemd/system/traefikee-plugin-registry.service
+    mode: 0644
+
+- name: Ensure systemd service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    service: traefikee-plugin-registry.service
+    state: started
+    enabled: true
