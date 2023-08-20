@@ -50,17 +50,17 @@
     state: started
     enabled: true
 
-- name: Register proxy token
-  ansible.builtin.slurp:
-    src: /opt/traefikee/tokens/proxy
-  register: _traefikee_proxy_token
-  run_once: true
-
 - name: Allow time for tokens to be created
   ansible.builtin.pause:
     seconds: 3
   run_once: true
   delegate_to: localhost
+
+- name: Register proxy token
+  ansible.builtin.slurp:
+    src: /opt/traefikee/tokens/proxy
+  register: _traefikee_proxy_token
+  run_once: true
 
 - name: Set proxy token fact
   ansible.builtin.set_fact:
