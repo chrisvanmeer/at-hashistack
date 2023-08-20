@@ -1,0 +1,11 @@
+---
+traefikee_version: 2.10.4
+
+traefikee_group_name: "traefikee"
+traefikee_group_gid: "1500"
+
+traefikee_user_name: "traefikee"
+traefikee_user_gid: "1500"
+
+traefikee_base_dir: "/opt/traefikee"
+traefikee_log_dir: "/var/log/traefikee"

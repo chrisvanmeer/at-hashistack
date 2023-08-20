@@ -1,0 +1,78 @@
+---
+- name: Configuration
+  tags: configuration
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Create fact of Vault admin password.
+      ansible.builtin.set_fact:
+        admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+      become: false
+
+    - name: Retrieve client token.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+        method: POST
+        body_format: json
+        body: '{ "password": "{{ admin_password }}" }'
+        status_code:
+          - 200
+          - 204
+        validate_certs: false
+      register: vault_admin_login_response
+
+    - name: Set fact of client token.
+      ansible.builtin.set_fact:
+        vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+    - name: Ensure Vault policy for Traefikee.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/sys/policy/{{ vault_traefikee_policy_name }}"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "policy": "path \"{{ vault_pki_int_path }}/{{ vault_pki_int_role_name }}/issue/*\" {\n  capabilities = [\"create\", \"update\"]\n}\n\npath \"{{ vault_pki_int_path }}/roles/{{ vault_pki_int_role_name }}\" {\n  capabilities = [\"read\"]\n}\n\npath \"{{ vault_pki_int_path }}/issue/{{ vault_pki_int_role_name }}\" {\n  capabilities = [\"create\"]\n}\n\npath \"{{ vault_pki_int_path }}/certs/{{ vault_pki_int_role_name }}/*\" {\n  capabilities = [\"read\"]\n}\n\npath \"{{ vault_pki_int_path }}/private/{{ vault_pki_int_role_name }}/*\" {\n  capabilities = [\"read\"]\n}\n\npath \"{{ vault_pki_int_path }}/*\" {\n  capabilities = [\"create\", \"read\", \"update\"]\n}"}'
+        status_code:
+          - 200
+          - 204
+
+    - name: Ensure token for Traefikee.
+      ansible.builtin.uri:
+        url: "{{ vault_consul_address }}/v1/auth/token/create-orphan"
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        method: POST
+        body_format: json
+        body: '{ "policies":["{{ vault_traefikee_policy_name }}"],"period":"768h","renewable":true }'
+        status_code:
+          - 200
+          - 204
+      register: _traefikee_vault_token
+
+    - name: Set fact of token.
+      ansible.builtin.set_fact:
+        traefikee_vault_token: "{{ _traefikee_vault_token.json.auth.client_token }}"
+
+    - name: Ensure static configuration on management station
+      ansible.builtin.template:
+        src: traefikee-config-static.yml.j2
+        dest: "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-static.yml"
+        mode: 0644
+      delegate_to: localhost
+      become: false
+    - name: Ensure dynamic configuration on management station
+      ansible.builtin.copy:
+        src: traefikee-config-dynamic.yml
+        dest: "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-dynamic.yml"
+        mode: 0644
+      delegate_to: localhost
+      become: false
+
+    - name: Ensure whoami nomad job on management station
+      ansible.builtin.template:
+        src: whoami.nomad.j2
+        dest: "/home/{{ ansible_env.SUDO_USER }}/whoami.nomad"
+        mode: 0644
+      delegate_to: localhost
+      become: false

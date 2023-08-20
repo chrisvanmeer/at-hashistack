@@ -1,0 +1,28 @@
+---
+- name: Binaries
+  ansible.builtin.include_tasks: binaries.yml
+
+- name: Preparations
+  ansible.builtin.include_tasks: preparations.yml
+  when: ansible_hostname in groups['traefikee_servers']
+
+- name: Controllers
+  ansible.builtin.include_tasks: controllers.yml
+  when: ansible_hostname in groups['traefikee_controllers']
+
+- name: Proxies
+  ansible.builtin.include_tasks: proxies.yml
+  when: ansible_hostname in groups['traefikee_proxies']
+
+- name: Plugin Registry
+  ansible.builtin.include_tasks: plugin-registry.yml
+  when: ansible_hostname in groups['traefikee_plugin_registry']
+
+- name: Remote Management
+  ansible.builtin.include_tasks: remote-management.yml
+  when: ansible_hostname in groups['traefikee_controllers']
+  tags: remote-management
+
+- name: Configuration
+  ansible.builtin.include_tasks: configuration.yml
+  tags: configuration

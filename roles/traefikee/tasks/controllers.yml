@@ -1,0 +1,34 @@
+---
+- name: Ensure environment file
+  ansible.builtin.template:
+    src: controller.env.j2
+    dest: /opt/traefikee/controller.env
+    owner: "{{ traefikee_user_name }}"
+    group: "{{ traefikee_group_name }}"
+    mode: 0640
+
+- name: Ensure systemd unit file
+  ansible.builtin.copy:
+    src: traefikee-controller.service
+    dest: /etc/systemd/system/traefikee-controller.service
+    mode: 0644
+
+- name: Ensure systemd service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    service: traefikee-controller.service
+    state: started
+    enabled: true
+
+- name: Register proxy token
+  ansible.builtin.slurp:
+    src: /opt/traefikee/tokens/proxy
+  register: _traefikee_proxy_token
+  run_once: true
+
+- name: Set proxy token fact
+  ansible.builtin.set_fact:
+    traefikee_proxy_token: "{{ _traefikee_proxy_token.content | b64decode }}"
+  delegate_facts: true
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts_all }}"

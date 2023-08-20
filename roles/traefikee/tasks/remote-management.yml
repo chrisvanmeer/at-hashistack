@@ -1,0 +1,33 @@
+---
+- name: Remote management
+  tags: remote-management
+  block:
+    - name: Export cluster configuration from controller
+      ansible.builtin.command:
+        cmd: "/usr/local/bin/traefikee generate credentials --onpremise.hosts={{ ansible_default_ipv4.address }} --cluster=default --socket=/opt/traefikee/run/teectl.sock"
+      changed_when: true
+      delegate_to: "{{ groups['traefikee_controllers'] | first }}"
+      run_once: true
+      register: traefikee_cluster_configuration
+
+    - name: Transfer cluster configuration
+      ansible.builtin.copy:
+        dest: "/home/{{ ansible_env.SUDO_USER }}/config.yaml"
+        content: "{{ traefikee_cluster_configuration.stdout }}"
+        mode: 0664
+      delegate_to: localhost
+      become: false
+
+    - name: Import cluster configuration into management station
+      ansible.builtin.command:
+        cmd: "/usr/local/bin/teectl cluster import --file=/home/{{ ansible_env.SUDO_USER }}/config.yaml"
+      changed_when: false
+      delegate_to: localhost
+      become: false
+
+    - name: Ensure cleanup
+      ansible.builtin.file:
+        path: "/home/{{ ansible_env.SUDO_USER }}/config.yaml"
+        state: absent
+      delegate_to: localhost
+      become: false
