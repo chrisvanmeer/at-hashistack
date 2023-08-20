@@ -9,7 +9,7 @@
   run_once: true
 
 - set_fact:
-    exportsss: "/usr/local/bin/traefikee generate credentials --onpremise.hosts={{ ansible_host }} --cluster=default --socket=/opt/traefikee/run/teectl.sock > config.yaml"
+    exportsss: "/usr/local/bin/traefikee generate credentials --onpremise.hosts={{ ansible_default_ipv4.address }} --cluster=default --socket=/opt/traefikee/run/teectl.sock > config.yaml"
   tags: test
 
 - name: test
