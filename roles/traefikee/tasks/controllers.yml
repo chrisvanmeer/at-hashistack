@@ -14,7 +14,7 @@
 
 - name: Set plugin registry token - current
   ansible.builtin.set_fact:
-    traefikee_plugin_token: "{{ _traefikee_plugin_token }}"
+    traefikee_plugin_token: "{{ _traefikee_plugin_token.stdout }}"
   delegate_facts: true
   delegate_to: "{{ item }}"
   with_items: "{{ ansible_play_hosts_all }}"
