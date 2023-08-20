@@ -20,7 +20,7 @@
 
     - name: Import cluster configuration into management station
       ansible.builtin.command:
-        cmd: "/usr/local/bin/teectl cluster import --file=/home/{{ ansible_env.SUDO_USER }}/config.yaml"
+        cmd: "/usr/local/bin/teectl cluster import --file=/home/{{ ansible_env.SUDO_USER }}/config.yaml --force"
       changed_when: false
       delegate_to: localhost
       become: false
