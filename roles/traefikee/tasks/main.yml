@@ -22,3 +22,7 @@
   ansible.builtin.include_tasks: remote-management.yml
   when: ansible_hostname in groups['traefikee_controllers']
   tags: remote-management
+
+- name: Configuration
+  ansible.builtin.include_tasks: configuration.yml
+  tags: configuration

@@ -24,14 +24,3 @@
       changed_when: false
       delegate_to: localhost
       become: false
-
-    - name: Ensure configuration on management station
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "/home/{{ ansible_env.SUDO_USER }}/{{ item }}"
-        mode: 0644
-      delegate_to: localhost
-      become: false
-      with_items:
-        - traefikee-config-static.yml
-        - traefikee-config-dynamic.yml

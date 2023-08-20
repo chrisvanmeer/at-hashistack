@@ -38,3 +38,9 @@ ping:
 providers:
   file:
     filename: traefikee_dynamic_config.yml
+  consulCatalog:
+    exposedByDefault: false
+    endpoint:
+      address: {{ consul_address }}
+      scheme: https
+      datacenter: {{ datacenter_name }}
