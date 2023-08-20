@@ -1,7 +1,7 @@
 ---
 - name: Export cluster configuration from controller
   ansible.builtin.shell:
-    cmd: /usr/local/bin/traefikee generate credentials --onpremise.hosts="{{ ansible_host }}" --cluster=default --socket="/opt/traefikee/run/teectl.sock" > config.yaml
+    cmd: "/usr/local/bin/traefikee generate credentials --onpremise.hosts={{ ansible_host }} --cluster=default --socket=/opt/traefikee/run/teectl.sock > config.yaml"
   changed_when: true
   environment:
     chdir: "{{ ansible_user_dir }}"
