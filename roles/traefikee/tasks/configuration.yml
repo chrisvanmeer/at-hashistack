@@ -48,7 +48,7 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "policy": "path \"{{ vault_pki_int_path }}/issue/{{ vault_pki_int_role_name }}\" { capabilities = [\"create\", \"update\"] }'
+        body: '{ "policy": "path \"{{ vault_pki_int_path }}/issue/{{ vault_pki_int_role_name }}\" {\n capabilities = [\"create\", \"update\"]\n} }'
         status_code:
           - 200
           - 204
