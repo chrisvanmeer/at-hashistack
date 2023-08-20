@@ -14,8 +14,7 @@
 
 - name: test
   tags: test
-  command:
-
+  command: "{{ exportsss }}"
   delegate_to: traefik01
   register: test
 
