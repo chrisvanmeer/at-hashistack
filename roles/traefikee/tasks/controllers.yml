@@ -56,6 +56,12 @@
   register: _traefikee_proxy_token
   run_once: true
 
+- name: Allow time for tokens to be created
+  ansible.builtin.pause:
+    seconds: 3
+  run_once: true
+  delegate_to: localhost
+
 - name: Set proxy token fact
   ansible.builtin.set_fact:
     traefikee_proxy_token: "{{ _traefikee_proxy_token.content | b64decode }}"
