@@ -50,6 +50,6 @@ certificatesResolvers:
     vault:
       url: "{{ vault_consul_address }}"
       auth:
-        token: "{{ traefikee_vault_token }}"
+        token: "{{ vault_token }}"
       enginePath: "{{ vault_pki_int_path }}"
       role: "{{ vault_pki_int_role_name }}"
