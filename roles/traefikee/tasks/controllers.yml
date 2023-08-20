@@ -29,5 +29,6 @@
 - name: Set proxy token fact
   ansible.builtin.set_fact:
     traefikee_proxy_token: "{{ _traefikee_proxy_token.content | b64decode }}"
+  delegate_facts: true
   delegate_to: "{{ item }}"
   with_items: "{{ ansible_play_hosts_all }}"
