@@ -32,37 +32,54 @@
       - traefikee_architecture in [ "amd64", "arm64" ]
     fail_msg: "This playbook only supports AMD64 or ARM64 deployments."
 
+- name: Determine if traefikee is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/traefikee
+  register: _traefikee_traefikee_binary
+
+- name: Determine if teectl is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/teectl
+  register: _traefikee_teectl_binary
+
 - name: Ensure download directory
   ansible.builtin.file:
     path: "{{ ansible_user_dir }}/_traefikee_download"
     state: directory
     mode: 0755
-
-- name: Download traefikee
-  ansible.builtin.unarchive:
-    src: "https://s3.amazonaws.com/traefikee/binaries/v{{ traefikee_version }}/traefikee_v{{ traefikee_version }}_linux_{{ traefikee_architecture }}.tar.gz"
-    dest: "{{ ansible_user_dir }}/_traefikee_download"
-    remote_src: yes
-
-- name: Download teectl
-  ansible.builtin.unarchive:
-    src: "https://s3.amazonaws.com/traefikee/binaries/v{{ traefikee_version }}/teectl_v{{ traefikee_version }}_linux_{{ traefikee_architecture }}.tar.gz"
-    dest: "{{ ansible_user_dir }}/_traefikee_download"
-    remote_src: yes
+  when: not _traefikee_traefikee_binary.stat.exists or not _traefikee_teectl_binary.stat.exists
 
 - name: Ensure traefikee binary
-  ansible.builtin.copy:
-    src: "{{ ansible_user_dir }}/_traefikee_download/traefikee"
-    dest: "/usr/local/bin/traefikee"
-    remote_src: true
-    mode: 0755
+  when: not _traefikee_traefikee_binary.stat.exists
+  block:
+    - name: Download traefikee
+      ansible.builtin.unarchive:
+        src: "https://s3.amazonaws.com/traefikee/binaries/v{{ traefikee_version }}/traefikee_v{{ traefikee_version }}_linux_{{ traefikee_architecture }}.tar.gz"
+        dest: "{{ ansible_user_dir }}/_traefikee_download"
+        remote_src: yes
+
+    - name: Ensure traefikee binary
+      ansible.builtin.copy:
+        src: "{{ ansible_user_dir }}/_traefikee_download/traefikee"
+        dest: "/usr/local/bin/traefikee"
+        remote_src: true
+        mode: 0755
 
 - name: Ensure teectl binary
-  ansible.builtin.copy:
-    src: "{{ ansible_user_dir }}/_traefikee_download/teectl"
-    dest: "/usr/local/bin/teectl"
-    remote_src: true
-    mode: 0755
+  when: not _traefikee_teectl_binary.stat.exists
+  block:
+    - name: Download teectl
+      ansible.builtin.unarchive:
+        src: "https://s3.amazonaws.com/traefikee/binaries/v{{ traefikee_version }}/teectl_v{{ traefikee_version }}_linux_{{ traefikee_architecture }}.tar.gz"
+        dest: "{{ ansible_user_dir }}/_traefikee_download"
+        remote_src: yes
+
+    - name: Ensure teectl binary
+      ansible.builtin.copy:
+        src: "{{ ansible_user_dir }}/_traefikee_download/teectl"
+        dest: "/usr/local/bin/teectl"
+        remote_src: true
+        mode: 0755
 
 - name: Cleanup download directory
   ansible.builtin.file:
