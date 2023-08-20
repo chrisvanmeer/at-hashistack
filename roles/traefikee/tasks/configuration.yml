@@ -4,22 +4,6 @@
   delegate_to: localhost
   run_once: true
   block:
-    - name: Ensure static configuration on management station
-      ansible.builtin.template:
-        src: traefikee-config-static.yml.j2
-        dest: "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-static.yml"
-        mode: 0644
-      delegate_to: localhost
-      become: false
-
-    - name: Ensure dynamic configuration on management station
-      ansible.builtin.copy:
-        src: traefikee-config-dynamic.yml
-        dest: "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-dynamic.yml"
-        mode: 0644
-      delegate_to: localhost
-      become: false
-
     - name: Create fact of Vault admin password.
       ansible.builtin.set_fact:
         admin_password: "{{ lookup('file', vault_admin_local_path) }}"
@@ -66,4 +50,29 @@
           - 204
       register: _traefikee_vault_token
 
-    - debug: var=_traefikee_vault_token
+    - name: Set fact of token.
+      ansible.builtin.set_fact:
+        traefikee_vault_token: "{{ _traefikee_vault_token.json.auth.client_token }}"
+
+    - name: Ensure static configuration on management station
+      ansible.builtin.template:
+        src: traefikee-config-static.yml.j2
+        dest: "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-static.yml"
+        mode: 0644
+      delegate_to: localhost
+      become: false
+    - name: Ensure dynamic configuration on management station
+      ansible.builtin.copy:
+        src: traefikee-config-dynamic.yml
+        dest: "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-dynamic.yml"
+        mode: 0644
+      delegate_to: localhost
+      become: false
+
+    - name: Ensure whoami nomad job on management station
+      ansible.builtin.template:
+        src: whoami.nomad.j2
+        dest: "/home/{{ ansible_env.SUDO_USER }}/whoami.nomad"
+        mode: 0644
+      delegate_to: localhost
+      become: false
