@@ -15,9 +15,9 @@
   when: ansible_hostname in groups['traefikee_proxies']
 
 - name: Plugin Registry
-  ansible.builtin.include_tasks: plugin_registry.yml
+  ansible.builtin.include_tasks: plugin-registry.yml
   when: ansible_hostname in groups['traefikee_plugin_registry']
 
 - name: Remote Management
-  ansible.builtin.include_tasks: remote_management.yml
+  ansible.builtin.include_tasks: remote-management.yml
   when: ansible_hostname in groups['traefikee_controllers']

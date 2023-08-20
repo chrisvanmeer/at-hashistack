@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
-EnvironmentFile=-/opt/traefikee/registry.env
+EnvironmentFile=-/opt/traefikee/plugin-registry.env
 Restart=on-abnormal
 User=traefikee
 Group=traefikee

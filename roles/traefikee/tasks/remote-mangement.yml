@@ -40,5 +40,5 @@
   delegate_to: localhost
   become: false
   with_items:
-    - traefikee_static_config.yml
-    - traefikee_dynamic_config.yml
+    - traefikee-config-static.yml
+    - traefikee-config-dynamic.yml

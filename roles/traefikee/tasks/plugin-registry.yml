@@ -1,8 +1,8 @@
 ---
 - name: Ensure environment file
   ansible.builtin.template:
-    src: registry.env.j2
-    dest: /opt/traefikee/registry.env
+    src: plugin-registry.env.j2
+    dest: /opt/traefikee/plugin-registry.env
     owner: "{{ traefikee_user_name }}"
     group: "{{ traefikee_group_name }}"
     mode: 0640
