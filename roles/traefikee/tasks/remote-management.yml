@@ -8,6 +8,23 @@
   delegate_to: "{{ groups['traefikee_controllers'] | first }}"
   run_once: true
 
+- set_fact:
+    exportsss: "/usr/local/bin/traefikee generate credentials --onpremise.hosts={{ ansible_host }} --cluster=default --socket=/opt/traefikee/run/teectl.sock > config.yaml"
+  tags: test
+
+- name: test
+  tags: test
+  command:
+
+  delegate_to: traefik01
+  register: test
+
+- debug: var=exportsss
+  tags: test
+
+- debug: var=test
+  tags: test
+
 - name: Read cluster configuration
   ansible.builtin.command:
     cmd: "cat {{ ansible_user_dir }}/config.yaml"
