@@ -24,3 +24,10 @@
       changed_when: false
       delegate_to: localhost
       become: false
+
+    - name: Ensure cleanup
+      ansible.builtin.file:
+        path: "/home/{{ ansible_env.SUDO_USER }}/config.yaml"
+        state: absent
+      delegate_to: localhost
+      become: false
