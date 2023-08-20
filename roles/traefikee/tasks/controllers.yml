@@ -10,7 +10,7 @@
     cmd: awk '/PLUGIN_TOKEN/ { print $NF }' /opt/traefikee/controller.env | cut -d'"' -f2
   changed_when: false
   register: _traefikee_plugin_token
-  when: _traefikee_plugin_token.stat.exists
+  when: _traefikee_controller_environment.stat.exists
 
 - name: Set plugin registry token - current
   ansible.builtin.set_fact:
@@ -18,7 +18,7 @@
   delegate_facts: true
   delegate_to: "{{ item }}"
   with_items: "{{ ansible_play_hosts_all }}"
-  when: _traefikee_plugin_token.stat.exists
+  when: _traefikee_controller_environment.stat.exists
 
 - name: Set plugin registry token - random
   ansible.builtin.set_fact:
@@ -26,7 +26,7 @@
   delegate_facts: true
   delegate_to: "{{ item }}"
   with_items: "{{ ansible_play_hosts_all }}"
-  when: not _traefikee_plugin_token.stat.exists
+  when: not _traefikee_controller_environment.stat.exists
 
 - name: Ensure environment file
   ansible.builtin.template:
