@@ -6,6 +6,7 @@
     owner: "{{ traefikee_user_name }}"
     group: "{{ traefikee_group_name }}"
     mode: 0640
+  notify: Restart Traefikee Proxy
 
 - name: Ensure systemd unit file
   ansible.builtin.copy:

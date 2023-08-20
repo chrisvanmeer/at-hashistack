@@ -1,4 +1,33 @@
 ---
+
+- name: Determine if there is already a working configuration present
+  ansible.builtin.stat:
+    path: /opt/traefikee/controller.env
+  register: _traefikee_controller_environment
+
+- name: Working configuration found. Retrieving current plugin registry token  # noqa risky-shell-pipe
+  ansible.builtin.shell:
+    cmd: awk '/PLUGIN_TOKEN/ { print $NF }' /opt/traefikee/controller.env | cut -d'"' -f2
+  changed_when: false
+  register: _traefikee_plugin_token
+  when: _traefikee_plugin_token.stat.exists
+
+- name: Set plugin registry token - current
+  ansible.builtin.set_fact:
+    traefikee_plugin_token: "{{ _traefikee_plugin_token }}"
+  delegate_facts: true
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts_all }}"
+  when: _traefikee_plugin_token.stat.exists
+
+- name: Set plugin registry token - random
+  ansible.builtin.set_fact:
+    traefikee_plugin_token: "{{ lookup('community.general.random_string', length=32, base64=true) }}"
+  delegate_facts: true
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts_all }}"
+  when: not _traefikee_plugin_token.stat.exists
+
 - name: Ensure environment file
   ansible.builtin.template:
     src: controller.env.j2
@@ -6,6 +35,7 @@
     owner: "{{ traefikee_user_name }}"
     group: "{{ traefikee_group_name }}"
     mode: 0640
+  notify: Restart Traefikee Controller
 
 - name: Ensure systemd unit file
   ansible.builtin.copy:

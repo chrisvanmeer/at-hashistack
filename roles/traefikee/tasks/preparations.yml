@@ -24,9 +24,3 @@
   with_items:
     - "{{ traefikee_base_dir }}"
     - "{{ traefikee_log_dir }}"
-
-- name: Ensure random plugin registry token
-  ansible.builtin.set_fact:
-    traefikee_plugin_token: "{{ lookup('community.general.random_string', length=32, base64=true) }}"
-  delegate_to: localhost
-  run_once: true
