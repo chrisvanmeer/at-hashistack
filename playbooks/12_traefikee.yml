@@ -9,5 +9,8 @@
     - ../roles/hashicorp/consul/vars/main.yml
     - ../roles/hashicorp/vault/vars/main.yml
 
+  vars:
+    vault_consul_address: "https://vault.service.inthepicture.photo:8200"
+
   roles:
     - traefikee
