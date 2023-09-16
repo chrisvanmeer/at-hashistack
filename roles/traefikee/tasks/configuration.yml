@@ -76,3 +76,11 @@
         mode: 0644
       delegate_to: localhost
       become: false
+
+    - name: Ensure hashiflip nomad job on management station
+      ansible.builtin.template:
+        src: hashiflip.nomad.j2
+        dest: "/home/{{ ansible_env.SUDO_USER }}/hashiflip.nomad"
+        mode: 0644
+      delegate_to: localhost
+      become: false

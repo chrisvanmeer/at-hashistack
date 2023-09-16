@@ -24,6 +24,7 @@
           with_items:
             - "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-dynamic.yml"
             - "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-static.yml"
+            - "/home/{{ ansible_env.SUDO_USER }}/hashiflip.nomad"
             - "/home/{{ ansible_env.SUDO_USER }}/whoami.nomad"
             - "/home/{{ ansible_env.SUDO_USER }}/.config/traefikee/default.yaml"
           delegate_to: localhost
