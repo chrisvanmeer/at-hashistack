@@ -45,11 +45,11 @@ providers:
       scheme: https
       datacenter: {{ datacenter_name }}
 
-certificatesResolvers:
-  {{ traefikee_vault_resolver }}:
-    vault:
-      url: "{{ vault_consul_address }}"
-      auth:
-        token: "{{ vault_token }}"
-      enginePath: "{{ vault_pki_int_path }}"
-      role: "{{ vault_pki_int_role_name }}"
+# certificatesResolvers:
+#   {{ traefikee_vault_resolver }}:
+#     vault:
+#       url: "{{ vault_consul_address }}"
+#       auth:
+#         token: "{{ vault_token }}"
+#       enginePath: "{{ vault_pki_int_path }}"
+#       role: "{{ vault_pki_int_role_name }}"
