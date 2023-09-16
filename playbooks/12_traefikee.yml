@@ -1,7 +1,7 @@
 ---
 - name: Install Traefik Enterprise
   hosts:
-    - desktop
+    - management
     - traefikee_servers
   become: true
 
@@ -12,8 +12,6 @@
 
   vars:
     vault_consul_address: "https://vault.service.inthepicture.photo:8200"
-    vault_traefikee_policy_name: pol-traefikee
-    traefikee_vault_resolver: vault-itp
 
   roles:
     - traefikee

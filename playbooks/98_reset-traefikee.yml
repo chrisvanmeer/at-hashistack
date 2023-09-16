@@ -1,8 +1,8 @@
 ---
 - name: Reset Traefik Enterprise
   hosts:
-    - traefikee_servers
     - management
+    - traefikee_servers
   become: true
 
   vars_files:
@@ -11,7 +11,6 @@
 
   vars:
     vault_consul_address: "https://vault.service.inthepicture.photo:8200"
-    vault_traefikee_policy_name: pol-traefikee
 
   tasks:
     - name: Management station
