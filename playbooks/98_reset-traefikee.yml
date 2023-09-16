@@ -12,7 +12,7 @@
   tasks:
     - name: Management station
       delegate_to: localhost
-      run_once: true
+      run_once: true  # noqa: run-once[task]
       block:
         - name: Remove management station files.
           ansible.builtin.file:
@@ -24,7 +24,7 @@
             - "/home/{{ ansible_env.SUDO_USER }}/whoami.nomad"
             - "/home/{{ ansible_env.SUDO_USER }}/.config/traefikee/default.yaml"
           delegate_to: localhost
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
         - name: Create fact of Vault admin password.
           ansible.builtin.set_fact:
@@ -56,7 +56,7 @@
             status_code:
               - 200
               - 204
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
     - name: Content
       when: ansible_hostname in groups['traefikee_servers']
@@ -70,7 +70,7 @@
             - traefikee-plugin-registry.service
             - traefikee-proxy.service
             - traefikee-controller.service
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
         - name: Remove systemd unit files
           ansible.builtin.file:
@@ -80,7 +80,7 @@
             - /etc/systemd/system/traefikee-plugin-registry.service
             - /etc/systemd/system/traefikee-proxy.service
             - /etc/systemd/system/traefikee-controller.service
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
         - name: Remove directories
           ansible.builtin.file:
@@ -89,19 +89,19 @@
           with_items:
             - "{{ traefikee_base_dir }}"
             - "{{ traefikee_log_dir }}"
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
         - name: Remove traefikee group
           ansible.builtin.group:
             name: "{{ traefikee_group_name }}"
             state: present
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
         - name: Remove traefikee user
           ansible.builtin.user:
             name: "{{ traefikee_user_name }}"
             state: present
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
 
     - name: Binaries
       block:
@@ -112,4 +112,4 @@
           with_items:
             - /usr/local/bin/traefikee
             - /usr/local/bin/teectl
-          ignore_errors: true
+          ignore_errors: true  # noqa: ignore-errors
