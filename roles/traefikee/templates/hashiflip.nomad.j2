@@ -27,8 +27,9 @@ job "hashiflip" {
       driver = "docker"
 
       config {
-        image = "chrisvanmeer/hashiflip"
-        ports = ["http"]
+        image      = "chrisvanmeer/hashiflip"
+        ports      = ["http"]
+        force_pull = true
       }
 
     }
