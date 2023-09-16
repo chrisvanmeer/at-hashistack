@@ -72,15 +72,15 @@ docker2
 docker3
 
 [traefikee_controllers]
-traefik01
+traefik1
 
 [traefikee_proxies]
-traefik02
-traefik03
-traefik04
+traefik2
+traefik3
+traefik4
 
 [traefikee_plugin_registry]
-traefik04
+traefik4
 
 [traefikee_servers:children]
 traefikee_controllers
