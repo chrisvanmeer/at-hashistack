@@ -9,3 +9,5 @@ traefikee_user_gid: "1500"
 
 traefikee_base_dir: "/opt/traefikee"
 traefikee_log_dir: "/var/log/traefikee"
+
+traefikee_vault_resolver: vault-itp
