@@ -11,6 +11,10 @@ nomad3
 docker1
 docker2
 docker3
+traefik1
+traefik2
+traefik3
+traefik4
 desktop
 
 [consul_servers]
@@ -28,6 +32,11 @@ nomad3
 docker1
 docker2
 docker3
+traefik1
+traefik2
+traefik3
+traefik4
+
 
 [vault_servers]
 vault1
@@ -41,6 +50,10 @@ nomad3
 docker1
 docker2
 docker3
+traefik1
+traefik2
+traefik3
+traefik4
 desktop
 
 [nomad_servers]
@@ -57,6 +70,22 @@ docker3
 docker1
 docker2
 docker3
+
+[traefikee_controllers]
+traefik01
+
+[traefikee_proxies]
+traefik02
+traefik03
+traefik04
+
+[traefikee_plugin_registry]
+traefik04
+
+[traefikee_servers:children]
+traefikee_controllers
+traefikee_proxies
+traefikee_plugin_registry
 
 [management]
 desktop
