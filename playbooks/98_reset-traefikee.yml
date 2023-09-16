@@ -9,6 +9,9 @@
     - ../roles/hashicorp/vault/vars/main.yml
     - ../roles/traefikee/defaults/main.yml
 
+  vars:
+    vault_consul_address: "https://vault.service.inthepicture.photo:8200"
+
   tasks:
     - name: Management station
       delegate_to: localhost
