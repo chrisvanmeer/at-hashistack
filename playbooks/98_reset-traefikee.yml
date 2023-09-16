@@ -1,0 +1,115 @@
+---
+- name: Reset Traefik Enterprise
+  hosts:
+    - traefikee_servers
+    - management
+  become: true
+
+  vars_files:
+    - ../roles/hashicorp/vault/vars/main.yml
+    - ../roles/traefikee/defaults/main.yml
+
+  tasks:
+    - name: Management station
+      delegate_to: localhost
+      run_once: true
+      block:
+        - name: Remove management station files.
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          with_items:
+            - "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-dynamic.yml"
+            - "/home/{{ ansible_env.SUDO_USER }}/traefikee-config-static.yml"
+            - "/home/{{ ansible_env.SUDO_USER }}/whoami.nomad"
+            - "/home/{{ ansible_env.SUDO_USER }}/.config/traefikee/default.yaml"
+          delegate_to: localhost
+          ignore_errors: true
+
+        - name: Create fact of Vault admin password.
+          ansible.builtin.set_fact:
+            admin_password: "{{ lookup('file', vault_admin_local_path) }}"
+          become: false
+
+        - name: Retrieve client token.
+          ansible.builtin.uri:
+            url: "{{ vault_consul_address }}/v1/auth/userpass/login/{{ vault_admin_username }}"
+            method: POST
+            body_format: json
+            body: '{ "password": "{{ admin_password }}" }'
+            status_code:
+              - 200
+              - 204
+            validate_certs: false
+          register: vault_admin_login_response
+
+        - name: Set fact of client token.
+          ansible.builtin.set_fact:
+            vault_token: "{{ vault_admin_login_response.json.auth.client_token }}"
+
+        - name: Remove Vault policy for Traefikee.
+          ansible.builtin.uri:
+            url: "{{ vault_consul_address }}/v1/sys/policy/{{ vault_traefikee_policy_name }}"
+            headers:
+              X-Vault-Token: "{{ vault_token }}"
+            method: DELETE
+            status_code:
+              - 200
+              - 204
+          ignore_errors: true
+
+    - name: Content
+      when: ansible_hostname in groups['traefikee_servers']
+      block:
+        - name: Stop services
+          ansible.builtin.systemd:
+            service: "{{ item }}"
+            state: stopped
+            enabled: false
+          with_items:
+            - traefikee-plugin-registry.service
+            - traefikee-proxy.service
+            - traefikee-controller.service
+          ignore_errors: true
+
+        - name: Remove systemd unit files
+          ansible.builtin.file:
+            dest: "{{ item }}"
+            state: absent
+          with_items:
+            - /etc/systemd/system/traefikee-plugin-registry.service
+            - /etc/systemd/system/traefikee-proxy.service
+            - /etc/systemd/system/traefikee-controller.service
+          ignore_errors: true
+
+        - name: Remove directories
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          with_items:
+            - "{{ traefikee_base_dir }}"
+            - "{{ traefikee_log_dir }}"
+          ignore_errors: true
+
+        - name: Remove traefikee group
+          ansible.builtin.group:
+            name: "{{ traefikee_group_name }}"
+            state: present
+          ignore_errors: true
+
+        - name: Remove traefikee user
+          ansible.builtin.user:
+            name: "{{ traefikee_user_name }}"
+            state: present
+          ignore_errors: true
+
+    - name: Binaries
+      block:
+        - name: Remove binaries
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          with_items:
+            - /usr/local/bin/traefikee
+            - /usr/local/bin/teectl
+          ignore_errors: true
