@@ -32,7 +32,7 @@
           X-Vault-Token: "{{ vault_token }}"
         method: POST
         body_format: json
-        body: '{ "policy": "path \"{{ vault_pki_int_path }}/{{ vault_pki_int_role_name }}/issue/*\" {\n  capabilities = [\"create\", \"update\"]\n}\n\npath \"{{ vault_pki_int_path }}/roles/{{ vault_pki_int_role_name }}\" {\n  capabilities = [\"read\"]\n}\n\npath \"{{ vault_pki_int_path }}/issue/{{ vault_pki_int_role_name }}\" {\n  capabilities = [\"create\"]\n}\n\npath \"{{ vault_pki_int_path }}/certs/{{ vault_pki_int_role_name }}/*\" {\n  capabilities = [\"read\"]\n}\n\npath \"{{ vault_pki_int_path }}/private/{{ vault_pki_int_role_name }}/*\" {\n  capabilities = [\"read\"]\n}\n\npath \"{{ vault_pki_int_path }}/*\" {\n  capabilities = [\"create\", \"read\", \"update\"]\n}"}'
+        body: '{ "policy": "path \"{{ vault_pki_int_path }}/*\" {\n  capabilities = [\"create\", \"read\", \"update\"]\n}"}'
         status_code:
           - 200
           - 204
