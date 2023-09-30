@@ -1,0 +1,29 @@
+[api]
+  dashboard = true
+  insecure = true
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+
+[log]
+  filePath = "{{ traefikee_log_dir }}/traefik.log"
+  level = "DEBUG"
+
+[accessLog]
+  filePath = "{{ traefikee_log_dir }}/access.log"
+
+[metrics]
+  [metrics.prometheus]
+
+[providers]
+  [providers.file]
+    directory = "{{ traefikee_base_dir }}/dynamic"
+    watch = true
+
+  [providers.consulCatalog]
+    exposedByDefault = false
+    [providers.consulCatalog.endpoint]
+      address = "{{ consul_address }}"
+      scheme = https
+      datacenter = {{ datacenter_name }}

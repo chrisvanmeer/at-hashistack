@@ -1,0 +1,12 @@
+---
+- name: Install Traefik
+  hosts:
+    - traefikee_servers
+  become: true
+
+  vars_files:
+    - ../roles/hashicorp/consul/vars/main.yml
+    - ../roles/hashicorp/nomad/vars/main.yml
+
+  roles:
+    - traefik
