@@ -5,7 +5,7 @@
   become: true
 
   vars_files:
-    - ../roles/traefik/default/main.yml
+    - ../roles/traefik/defaults/main.yml
 
   tasks:
     - name: Management station
