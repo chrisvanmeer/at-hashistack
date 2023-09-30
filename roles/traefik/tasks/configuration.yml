@@ -1,23 +1,15 @@
 ---
-- name: Ensure static configuration file (TOML)
-  ansible.builtin.template:
-    src: traefik.toml.j2
-    dest: /opt/traefik/traefik.toml
-    owner: "{{ traefik_user_name }}"
-    group: "{{ traefik_group_name }}"
-    mode: 0640
-
-- name: Ensure static configuration file (YAML)
+- name: Ensure static configuration file
   ansible.builtin.template:
     src: traefik.yml.j2
-    dest: /opt/traefik/traefik.yml
+    dest: "{{ traefik_base_dir }}/traefik.yml"
     owner: "{{ traefik_user_name }}"
     group: "{{ traefik_group_name }}"
     mode: 0640
 
 - name: Ensure systemd unit file
-  ansible.builtin.copy:
-    src: traefik.service
+  ansible.builtin.template:
+    src: traefik.service.j2
     dest: /etc/systemd/system/traefik.service
     mode: 0644
 

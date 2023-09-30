@@ -7,7 +7,7 @@ Wants=network-online.target systemd-networkd-wait-online.service
 Restart=on-abnormal
 User=traefik
 Group=traefik
-ExecStart=/usr/local/bin/traefik --configfile=/opt/traefik/traefik.toml
+ExecStart={{ traefik_binary }} --configfile={{ traefik_base_dir }}/traefik.yml
 LimitNOFILE=1048576
 PrivateTmp=true
 PrivateDevices=false

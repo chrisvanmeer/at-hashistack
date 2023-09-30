@@ -9,3 +9,5 @@ traefik_user_gid: "1400"
 
 traefik_base_dir: "/opt/traefik"
 traefik_log_dir: "/var/log/traefik"
+
+traefik_binary: "/usr/local/bin/traefik"
