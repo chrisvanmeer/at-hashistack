@@ -18,8 +18,7 @@ job "hashiflip" {
       tags = [
         "traefik.enable=true",
         "traefik.http.routers.hashiflip.entrypoints=websecure",
-        "traefik.http.routers.hashiflip.rule=Host(`hashiflip.{{ consul_domain }}`)",
-        "traefik.http.routers.hashiflip.tls.certResolver={{ traefik_vault_resolver }}"
+        "traefik.http.routers.hashiflip.rule=Host(`hashiflip.{{ consul_domain }}`)"
       ]
     }
 
