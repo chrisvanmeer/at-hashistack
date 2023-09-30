@@ -18,8 +18,7 @@ job "whoami" {
       tags = [
         "traefik.enable=true",
         "traefik.http.routers.whoami.entrypoints=websecure",
-        "traefik.http.routers.whoami.rule=Host(`whoami.{{ consul_domain }}`)",
-        "traefik.http.routers.whoami.tls.certResolver={{ traefik_vault_resolver }}"
+        "traefik.http.routers.whoami.rule=Host(`whoami.{{ consul_domain }}`)"
       ]
     }
 
