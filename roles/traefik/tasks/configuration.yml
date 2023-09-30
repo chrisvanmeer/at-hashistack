@@ -2,21 +2,21 @@
 - name: Ensure static configuration file
   ansible.builtin.template:
     src: traefik.toml.j2
-    dest: /opt/traefikee/traefik.toml
-    owner: "{{ traefikee_user_name }}"
-    group: "{{ traefikee_group_name }}"
+    dest: /opt/traefik/traefik.toml
+    owner: "{{ traefik_user_name }}"
+    group: "{{ traefik_group_name }}"
     mode: 0640
 
 - name: Ensure systemd unit file
   ansible.builtin.copy:
-    src: traefikee.service
-    dest: /etc/systemd/system/traefikee.service
+    src: traefik.service
+    dest: /etc/systemd/system/traefik.service
     mode: 0644
 
 - name: Ensure systemd service
   ansible.builtin.systemd:
     daemon_reload: true
-    service: traefikee.service
+    service: traefik.service
     state: started
     enabled: true
 

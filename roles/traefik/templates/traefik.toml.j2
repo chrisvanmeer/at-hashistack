@@ -7,18 +7,18 @@
   address = ":80"
 
 [log]
-  filePath = "{{ traefikee_log_dir }}/traefik.log"
+  filePath = "{{ traefik_log_dir }}/traefik.log"
   level = "DEBUG"
 
 [accessLog]
-  filePath = "{{ traefikee_log_dir }}/access.log"
+  filePath = "{{ traefik_log_dir }}/access.log"
 
 [metrics]
   [metrics.prometheus]
 
 [providers]
   [providers.file]
-    directory = "{{ traefikee_base_dir }}/dynamic"
+    directory = "{{ traefik_base_dir }}/dynamic"
     watch = true
 
   [providers.consulCatalog]

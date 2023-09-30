@@ -20,27 +20,27 @@
 - name: Determine if traefik is installed
   ansible.builtin.stat:
     path: /usr/local/bin/traefik
-  register: _traefikee_traefik_binary
+  register: _traefik_traefik_binary
 
 - name: Ensure download directory
   ansible.builtin.file:
     path: "{{ ansible_user_dir }}/_traefik_download"
     state: directory
     mode: 0755
-  when: not _traefikee_traefik_binary.stat.exists
+  when: not _traefik_traefik_binary.stat.exists
 
 - name: Ensure traefik binary
-  when: not _traefik_traefikee_binary.stat.exists
+  when: not _traefik_traefik_binary.stat.exists
   block:
-    - name: Download traefikee
+    - name: Download traefik
       ansible.builtin.unarchive:
         src: "https://github.com/traefik/traefik/releases/download/v{{ traefik_version }}/traefik_v{{ traefik_version }}_linux_{{ traefik_architecture }}.tar.gz"
         dest: "{{ ansible_user_dir }}/_traefik_download"
         remote_src: yes
 
-    - name: Ensure traefikee binary
+    - name: Ensure traefik binary
       ansible.builtin.copy:
-        src: "{{ ansible_user_dir }}/_traefikee_download/traefik"
+        src: "{{ ansible_user_dir }}/_traefik_download/traefik"
         dest: "/usr/local/bin/traefik"
         remote_src: true
         mode: 0755

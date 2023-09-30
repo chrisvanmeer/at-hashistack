@@ -1,11 +1,11 @@
 ---
-traefikee_version: 2.10.4
+traefik_version: 2.10.4
 
-traefikee_group_name: "traefik"
-traefikee_group_gid: "1400"
+traefik_group_name: "traefik"
+traefik_group_gid: "1400"
 
-traefikee_user_name: "traefik"
-traefikee_user_gid: "1400"
+traefik_user_name: "traefik"
+traefik_user_gid: "1400"
 
-traefikee_base_dir: "/opt/traefik"
-traefikee_log_dir: "/var/log/traefik"
+traefik_base_dir: "/opt/traefik"
+traefik_log_dir: "/var/log/traefik"
