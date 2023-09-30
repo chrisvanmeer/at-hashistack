@@ -1,12 +1,9 @@
 ---
 - name: Binary
   ansible.builtin.include_tasks: binary.yml
-  when: ansible_hostname == traefik_server
 
 - name: Preparations
   ansible.builtin.include_tasks: preparations.yml
-  when: ansible_hostname == traefik_server
 
 - name: Configuration
   ansible.builtin.include_tasks: configuration.yml
-  when: ansible_hostname == traefik_server

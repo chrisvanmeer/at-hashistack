@@ -1,7 +1,7 @@
 ---
 - name: Install Traefik
   hosts:
-    - traefikee_servers
+    - traefik2
   become: true
 
   vars_files:

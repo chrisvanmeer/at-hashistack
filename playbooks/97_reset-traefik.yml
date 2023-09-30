@@ -1,7 +1,7 @@
 ---
 - name: Reset Traefik
   hosts:
-    - traefikee_servers
+    - traefik2
   become: true
 
   vars_files:
@@ -22,45 +22,42 @@
           delegate_to: localhost
           ignore_errors: true  # noqa: ignore-errors
 
-    - name: Content
-      when: ansible_hostname == traefik_server
-      block:
-        - name: Stop service
-          ansible.builtin.systemd:
-            service: traefik.service
-            state: stopped
-            enabled: false
-          ignore_errors: true  # noqa: ignore-errors
+    - name: Stop service
+      ansible.builtin.systemd:
+        service: traefik.service
+        state: stopped
+        enabled: false
+      ignore_errors: true  # noqa: ignore-errors
 
-        - name: Remove systemd unit file
-          ansible.builtin.file:
-            dest: /etc/systemd/system/traefik.service
-            state: absent
-          ignore_errors: true  # noqa: ignore-errors
+    - name: Remove systemd unit file
+      ansible.builtin.file:
+        dest: /etc/systemd/system/traefik.service
+        state: absent
+      ignore_errors: true  # noqa: ignore-errors
 
-        - name: Remove directories
-          ansible.builtin.file:
-            path: "{{ item }}"
-            state: absent
-          with_items:
-            - "{{ traefik_base_dir }}"
-            - "{{ traefik_log_dir }}"
-          ignore_errors: true  # noqa: ignore-errors
+    - name: Remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ traefik_base_dir }}"
+        - "{{ traefik_log_dir }}"
+      ignore_errors: true  # noqa: ignore-errors
 
-        - name: Remove traefik group
-          ansible.builtin.group:
-            name: "{{ traefik_group_name }}"
-            state: present
-          ignore_errors: true  # noqa: ignore-errors
+    - name: Remove traefik group
+      ansible.builtin.group:
+        name: "{{ traefik_group_name }}"
+        state: present
+      ignore_errors: true  # noqa: ignore-errors
 
-        - name: Remove traefik user
-          ansible.builtin.user:
-            name: "{{ traefik_user_name }}"
-            state: present
-          ignore_errors: true  # noqa: ignore-errors
+    - name: Remove traefik user
+      ansible.builtin.user:
+        name: "{{ traefik_user_name }}"
+        state: present
+      ignore_errors: true  # noqa: ignore-errors
 
-        - name: Remove binary
-          ansible.builtin.file:
-            path: /usr/local/bin/traefik
-            state: absent
-          ignore_errors: true  # noqa: ignore-errors
+    - name: Remove binary
+      ansible.builtin.file:
+        path: /usr/local/bin/traefik
+        state: absent
+      ignore_errors: true  # noqa: ignore-errors
