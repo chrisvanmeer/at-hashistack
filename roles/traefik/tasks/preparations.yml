@@ -1,0 +1,27 @@
+---
+- name: Ensure traefik group
+  ansible.builtin.group:
+    name: "{{ traefik_group_name }}"
+    state: present
+    gid: "{{ traefik_group_gid }}"
+
+- name: Ensure traefik user
+  ansible.builtin.user:
+    name: "{{ traefik_user_name }}"
+    uid: "{{ traefik_user_gid }}"
+    group: "{{ traefik_group_name }}"
+    home: "{{ traefik_base_dir }}"
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Ensure directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ traefik_user_name }}"
+    group: "{{ traefik_group_name }}"
+    mode: 0700
+  with_items:
+    - "{{ traefik_log_dir }}"
+    - "{{ traefik_base_dir }}"
+    - "{{ traefik_base_dir }}/dynamic"

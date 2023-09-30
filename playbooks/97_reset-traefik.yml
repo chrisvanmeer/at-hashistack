@@ -17,8 +17,7 @@
             path: "{{ item }}"
             state: absent
           with_items:
-            - "/home/{{ ansible_env.SUDO_USER }}/hashiflip-non-secure.nomad"
-            - "/home/{{ ansible_env.SUDO_USER }}/hashiflip-secure.nomad"
+            - "/home/{{ ansible_env.SUDO_USER }}/hashiflip.nomad"
             - "/home/{{ ansible_env.SUDO_USER }}/whoami.nomad"
           delegate_to: localhost
           ignore_errors: true  # noqa: ignore-errors

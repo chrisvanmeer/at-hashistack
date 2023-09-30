@@ -29,5 +29,4 @@
   become: false
   with_items:
     - whoami
-    - hashiflip-non-secure
-    - hashiflip-secure
+    - hashiflip
