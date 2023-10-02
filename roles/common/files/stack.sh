@@ -33,7 +33,13 @@ fi
 case "$1" in
     "status")
         clear
+        # Command to display the Consul version
+        echo "Consul Version:"
+        echo "==============="
+        consul version
+
         # Command to display all Consul clients and servers
+        echo 
         echo "Consul Members:"
         echo "==============="
         consul members
@@ -44,11 +50,23 @@ case "$1" in
         echo "==============="
         consul operator raft list-peers
 
+        # Command to display the Vault version
+        echo 
+        echo "Vault Version:"
+        echo "============="
+        vault version
+
         # Command to display all Vault servers
         echo 
         echo "Vault Servers:"
         echo "=============="
         vault operator raft list-peers
+
+        # Command to display the Nomad version
+        echo 
+        echo "Nomad Version:"
+        echo "=============="
+        nomad version
 
         # Command to display all Nomad clients and servers
         echo 
