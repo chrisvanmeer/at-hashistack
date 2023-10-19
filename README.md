@@ -26,7 +26,7 @@ slides presentation.md
    This is convenient to monitor the `vault` and `nomad` services during installation.
 5. `ansible-playbook playbooks/04_vault.yml`
 6. `ansible-playbook playbooks/04_vault.yml --tags unseal`
-7. `ansible-playbook playbooks/05_nomad`
+7. `ansible-playbook playbooks/05_nomad.yml`
 8. Run the aperture script to make sure everything is up and running: `./aperture.sh`
 
 Note that if you want to use any of the binary commands on the management station, be sure to `source ~/.bashrc` after each product installation, since this also sets the correct environment variables.
