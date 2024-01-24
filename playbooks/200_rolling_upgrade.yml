@@ -1,0 +1,43 @@
+---
+- name: Upgrade HashiTools to the latest version
+  hosts: all
+  become: true
+  serial: 1
+
+  vars:
+    packages:
+      - consul
+      - vault
+      - nomad
+
+  tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+
+    - name: Ensure latest version
+      block:
+        - name: Ensure package
+          ansible.builtin.package:
+            name: "{{ item }}"
+            state: latest
+          loop: "{{ packages }}"
+          register: package_upgrade
+          notify: Restart service
+          when: item in ansible_facts.packages
+      rescue:
+        - name: Something went wrong
+          ansible.builtin.debug:
+            msg: |
+              Something went wrong whilst updating the packages.
+              Please fix this on the specific host and re-run this play.
+
+  handlers:
+    - name: Restart service
+      ansible.builtin.service:
+        name: "{{ item.item }}"
+        state: restarted
+      when: item.changed
+      loop: "{{ package_upgrade.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
