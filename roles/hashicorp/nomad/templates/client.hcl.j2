@@ -1,5 +1,12 @@
+{{ ansible_managed | comment }}
+
 client {
+{%if nomad_node_pool is defined %}
+  enabled   = true
+  node_pool = "{{ nomad_node_pool }}"
+{% else %}
   enabled = true
+{% endif %}
 {% if waypoint_config is defined %}
   host_volume {
     {{ nomad_waypoint_server_volume_name }} {
