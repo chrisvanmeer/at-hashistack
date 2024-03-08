@@ -1,8 +1,10 @@
 {{ ansible_managed | comment }}
 
-ui            = true
-disable_mlock = true
-log_file      = "/var/log/vault/vault.log"
+ui                   = true
+disable_mlock        = true
+log_file             = "/var/log/vault/vault.log"
+log_rotate_duration  = "86400s"
+log_rotate_max_files = 7
 
 cluster_name = "InThePicture-Vault-Cluster"
 cluster_addr = "https://{{ inventory_hostname }}.node.{{ consul_domain }}:8201"
