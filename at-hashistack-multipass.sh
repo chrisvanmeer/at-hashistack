@@ -70,7 +70,7 @@ EOF
     # Iterate over the server list and launch multipass instances with cloud-init
     for server in $server_list; do
         # Launch multipass instance with cloud-init
-        multipass launch --name "$server" --cloud-init "$cloud_init_file"
+        multipass launch --name "$server" --cloud-init "$cloud_init_file" --disk 10G
     done
 
     # Remove the cloud-init file after launching all instances
